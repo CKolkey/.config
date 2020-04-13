@@ -1,6 +1,7 @@
 # Settings for the ZSH prompt, spaceship
 SPACESHIP_DIR_COLOR="blue"
 SPACESHIP_CHAR_SYMBOL="> "
+SPACESHIP_PROMPT_DEFAULT_PREFIX=""
 SPACESHIP_GIT_PREFIX=""
 SPACESHIP_GIT_SYMBOL="\e[39m• \e[35m"
 SPACESHIP_GIT_STATUS_PREFIX=" "
@@ -24,11 +25,18 @@ SPACESHIP_VI_MODE_NORMAL=""
 SPACESHIP_VI_MODE_INSERT=""
 SPACESHIP_VI_MODE_COLOR=""
 
+SPACESHIP_DIR_PREFIX=""
+SPACESHIP_HOST_PREFIX=""
+SPACESHIP_HOST_SUFFIX=" • "
+SPACESHIP_USER_PREFIX=""
+SPACESHIP_USER_SUFFIX=":"
+SPACESHIP_RUBY_PREFIX=""
+
 SPACESHIP_PROMPT_ORDER=(
   time          # Time stamps section
   user          # Username section
-  dir           # Current directory section
   host          # Hostname section
+  dir           # Current directory section
   git           # Git section (git_branch + git_status)
   hg            # Mercurial section (hg_branch  + hg_status)
   exec_time     # Execution time
@@ -60,7 +68,7 @@ SPACESHIP_RPROMPT_ORDER=(
   pyenv         # Pyenv section
   dotnet        # .NET section
   ember         # Ember.js section
-  kubecontext   # Kubectl context section
+  # kubecontext   # Kubectl context section
   terraform     # Terraform workspace section
   rprompt_suffix # Helper for putting RPrompt on same line as LPrompt
 )
@@ -74,4 +82,4 @@ spaceship_rprompt_suffix() {
 }
 
 autoload -U promptinit; promptinit
-prompt spaceship
+# prompt spaceship

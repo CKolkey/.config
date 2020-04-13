@@ -1,5 +1,5 @@
-alias aliases="v ~/.dotfiles/zsh/aliases"
-alias kittyconf="v ~/.dotfiles/kitty.conf"
+alias aliases="v ~/.config/zsh/aliases"
+alias kittyconf="v ~/.config/kitty/kitty.conf"
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 alias ssh-aws="ssh -i ~/Code/aws-keypair-dev.pem ubuntu@$(aws ec2 describe-instances | rg "i-018f42b3bbecf83d0" | awk '{print $14}')"
 alias aws-url="echo "http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000" | pbcopy"

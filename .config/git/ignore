@@ -19,3 +19,6 @@ tags
 # Persistent undo
 [._]*.un~
 # VIM END
+
+# Config Git Repo
+.cfg
