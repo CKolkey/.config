@@ -1,1 +1,1 @@
-source $HOME/.config/nvim/init.vim
+/home/ubuntu/.config/vim/vimrc

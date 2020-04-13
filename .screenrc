@@ -1,12 +1,1 @@
-truecolor on              # Truecolor...duh.
-startup_message off       # No Welcome Screen
-maptimeout 5              # Fix Vim Esc Lag
-
-bindkey "^[OP" prev       # F1
-bindkey "^[OQ" next       # F2
-bindkey "^[OR" screen     # F3
-bindkey "^[OS" windowlist # F4
-
-screen -t nvim            # Open Window to shell, title: nvim
-screen -t overmind        # Open Window to shell, title: overmind
-select 0                  # Set focus to nvim (0)
+/home/ubuntu/.config/screen/screenrc
