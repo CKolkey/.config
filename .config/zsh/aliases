@@ -1,7 +1,7 @@
 alias aliases="v ~/.config/zsh/aliases"
 alias kittyconf="v ~/.config/kitty/kitty.conf"
 alias config='/usr/bin/git --git-dir=$HOME/.config.git/ --work-tree=$HOME'
-alias ssh-aws="ssh -i ~/Code/aws-keypair-dev.pem ubuntu@$(aws ec2 describe-instances | rg "i-018f42b3bbecf83d0" | awk '{print $14}')"
+alias ssh-aws="ssh -i ~/code/aws-keypair-dev.pem ubuntu@$(aws ec2 describe-instances | rg "i-018f42b3bbecf83d0" | awk '{print $14}')"
 alias aws-url="echo "http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000" | pbcopy"
 alias open-aws="open http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000"
 alias lg="lazygit"
@@ -42,8 +42,8 @@ alias rdbm="rails db:migrate"
 alias fzfi='rg --files --hidden --follow --no-ignore-vcs -g "!{node_modules,.git}" | fzf'
 alias vf='v $(fzfi)'
 
-alias chip="cd ~/Code/Principium/Chipmunk"
-alias nut="cd ~/Code/Principium/Nuthouse"
+alias chip="cd ~/code/Principium/Chipmunk"
+alias nut="cd ~/code/Principium/Nuthouse"
 alias killruby='pkill -f ruby'
 alias rc='bin/rails console'
 alias herokyu="heroku"
