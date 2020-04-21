@@ -10,3 +10,6 @@ bindkey "^[OS" windowlist # F4
 screen -t nvim            # Open Window to shell, title: nvim
 screen -t overmind        # Open Window to shell, title: overmind
 select 0                  # Set focus to nvim (0)
+
+defscrollback 5000         # Lot's of Scrollback
+termcapinfo xterm* ti@:te@ # Mousewheel Scrollback

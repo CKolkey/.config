@@ -7,8 +7,6 @@
   endif
 
   call plug#begin()
-    Plug 'joshdick/onedark.vim'
-
     Plug 'mbbill/undotree'
     Plug 'romainl/vim-cool'
     Plug 'Krasjet/auto.pairs'
@@ -20,12 +18,11 @@
     Plug 'airblade/vim-gitgutter'
     Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh' }
     Plug 'chaoren/vim-wordmotion'
-    Plug 'junegunn/vim-easy-align'
-    Plug 'AndrewRadev/splitjoin.vim'
+    " Plug 'junegunn/vim-easy-align'
     Plug 'machakann/vim-highlightedyank'
 
+    Plug 'justinmk/vim-dirvish'
     Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
-    Plug 'kristijanhusak/defx-git'
     Plug 'kristijanhusak/defx-icons'
 
     Plug 'dense-analysis/ale'
@@ -49,6 +46,9 @@
     Plug 'tpope/vim-sensible'
     Plug 'tpope/vim-surround'
     Plug 'tpope/vim-commentary'
+
+    Plug 'joshdick/onedark.vim'
+    Plug 'ryanoasis/vim-devicons'
   call plug#end()
 " }}}
 
@@ -90,8 +90,8 @@
   set shortmess=atIAc       "Hidden startup messages
   set hidden         " allows you to nav away from an unsaved buffer
   set updatetime=300 " You will have bad experience for diagnostic messages when it's default 4000.
-  " set shortmess+=c   " don't give ins-completion-menu messages.
   set signcolumn=yes " always show signcolumns
+  set mouse=h
 
   set backup
   set undofile              " Persistant Undo
@@ -495,7 +495,7 @@
   " DEFX Filetree browser {{{
     nnoremap <silent>- :Defx<CR>
     call defx#custom#option('_', {
-      \ 'columns': 'indent:icons:filename:type:git',
+      \ 'columns': 'indent:icons:filename:type',
       \ 'winwidth': 50,
       \ 'split': 'vertical',
       \ 'direction': 'topleft',
@@ -506,28 +506,15 @@
       \ 'root_marker': ':',
       \})
 
-    call defx#custom#column('git', 'show_ignored', 1)
     call defx#custom#column('filename', { 'root_marker_highlight': 'Ignore' })
-
-    let g:defx_git#indicators = {
-      \ 'Modified'  : '!',
-      \ 'Staged'    : '✚',
-      \ 'Untracked' : '?',
-      \ 'Renamed'   : '»',
-      \ 'Unmerged'  : '≠',
-      \ 'Ignored'   : 'ⁱ',
-      \ 'Deleted'   : '✖',
-      \ 'Unknown'   : '*'
-      \ }
 
     let g:defx_icons_directory_symlink_icon  = '~>'
     let g:defx_icons_directory_icon          = ' +'
     let g:defx_icons_root_opened_tree_icon   = ' -'
     let g:defx_icons_nested_opened_tree_icon = ' -'
     let g:defx_icons_nested_closed_tree_icon = ' +'
-    let g:defx_icons_enable_syntax_highlight = 0
-    let g:defx_icons_column_length           = 2
     let g:defx_icons_enable_syntax_highlight = 1
+    let g:defx_icons_column_length           = 2
     let g:defx_icons_mark_icon               = '*'
     let g:defx_icons_copy_icon               = ''
     let g:defx_icons_move_icon               = ''
@@ -622,6 +609,40 @@
     call deoplete#custom#option('auto_complete_delay', 0)
     call deoplete#custom#option('smart_case', v:true)
     call deoplete#custom#option('min_pattern_length', 1)
+  " }}}
+  " DIRVISH {{{
+    nnoremap _ :Dirvish<cr>
+
+    let g:dirvish_mode = ':sort ,^.*[\/],'
+    augroup dirvish_config
+      autocmd!
+
+      " Map `t` to open in new tab.
+      autocmd FileType dirvish
+        \  nnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
+        \ |xnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
+
+      " Map `gr` to reload.
+      autocmd FileType dirvish nnoremap <silent><buffer>
+        \ gr :<C-U>Dirvish %<CR>
+
+      " Map `gh` to hide dot-prefixed files.  Press `R` to "toggle" (reload).
+      autocmd FileType dirvish nnoremap <silent><buffer>
+        \ gh :silent keeppatterns g@\v/\.[^\/]+/?$@d _<cr>:setl cole=3<cr>
+
+      " l opens file or folder
+      autocmd FileType dirvish nnoremap <silent><buffer>
+        \ l :<C-U>.call dirvish#open("edit", 0)<CR>
+
+      " h goes up a level
+      autocmd FileType dirvish nnoremap <silent><buffer>
+        \ h :<C-U>exe "Dirvish %:h".repeat(":h",v:count1)<CR>
+
+      " s opens horizontal split
+      autocmd FileType dirvish nnoremap <silent><buffer>
+        \ s :<C-U>.call dirvish#open("split", 1)<CR>
+
+    augroup END
   " }}}
   " EASYALIGN{{{
     xnoremap <leader>ea <Plug>(EasyAlign)
@@ -785,10 +806,6 @@
     highlight SneakScope guifg=red guibg=yellow
     highlight SneakLabel guifg=red guibg=yellow
   " }}}
-  " SPLITJOIN {{{
-    nnoremap <leader>sj :SplitjoinSplit<cr>
-    nnoremap <leader>sk :SplitjoinJoin<cr>
-  " }}}
   " UNDO TREE {{{
     let g:undotree_WindowLayout       = 4
     let g:undotree_SetFocusWhenToggle = 1
@@ -862,4 +879,11 @@
 
   " Set Transparent Background
   hi Normal guibg=NONE
+
+  " DIRVISH GIT {{{
+    hi default DirvishGitModified guifg=#FFE082
+    hi default DirvishGitRenamed  guifg=#FFE082
+    hi default DirvishGitStaged   guifg=#C3E88D
+    hi default DirvishGitUnmerged guifg=#E06C75
+  " }}}
 " }}}

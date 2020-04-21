@@ -1,3 +1,9 @@
+# SSH Agent
+keychain id_rsa
+. ~/.keychain/`uname -n`-sh
+# /usr/bin/keychain $HOME/.ssh/id_rsa
+# source $HOME/.keychain/$HOSTNAME-sh
+
 # Launch Screen if it's not active
 [ -z "$STY" ] && screen
 # Close connection after screen terminates
@@ -82,12 +88,6 @@ export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.g
 
 # General Coloring (GRC)
 [[ -s "/etc/grc.zsh" ]] && source /etc/grc.zsh
-
-# SSH Agent
-keychain id_rsa
-. ~/.keychain/`uname -n`-sh
-# /usr/bin/keychain $HOME/.ssh/id_rsa
-# source $HOME/.keychain/$HOSTNAME-sh
 
 # Load rbenv if installed
 # export PATH="${HOME}/.rbenv/bin:${PATH}"
