@@ -5,6 +5,7 @@ alias ssh-aws="ssh -i ~/code/aws-keypair-dev.pem ubuntu@$(aws ec2 describe-insta
 alias aws-url="echo "http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000" | pbcopy"
 alias open-aws="open http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000"
 alias lg="lazygit"
+alias fzkill="ps -ef | fzf | awk '{print $2}' | xargs kill"
 
 alias zshrc="v ~/.zshrc"
 alias ohmyzsh="v ~/.oh-my-zsh"

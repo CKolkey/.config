@@ -70,7 +70,6 @@
   set ignorecase            " ignore case on search
   set smartcase             " Ignores case if search is all lower, case sensitive otherwise
   set hlsearch              " Highlight Search
-  set re=1                  " Sets regex engine
   set visualbell            " don't beep
   set noerrorbells          " don't beep
   set belloff=all           " don't flash
@@ -88,10 +87,9 @@
   set list
   set listchars=tab:››,nbsp:·,trail:•,extends:»,precedes:«
   set shortmess=atIAc       "Hidden startup messages
-  set hidden         " allows you to nav away from an unsaved buffer
-  set updatetime=300 " You will have bad experience for diagnostic messages when it's default 4000.
-  set signcolumn=yes " always show signcolumns
-  set mouse=h
+  set hidden                " allows you to nav away from an unsaved buffer
+  set updatetime=300        " You will have bad experience for diagnostic messages when it's default 4000.
+  set signcolumn=yes        " always show signcolumns
 
   set backup
   set undofile              " Persistant Undo
@@ -178,6 +176,20 @@
       autocmd!
       autocmd Filetype help nnoremap <buffer> q :q<CR>
     augroup END
+  " }}}
+  " FORMATTING {{{
+    augroup niceformating
+      autocmd!
+      autocmd BufWinEnter * set fo-=c fo-=r fo-=o " Disable continuation of comments to the next line
+      autocmd BufWinEnter * set formatoptions+=j  " Remove a comment leader when joining lines
+    augroup END
+  " }}}
+  " TRIM WHITESPACE {{{
+    " Doing this in vim is blocking
+    " augroup trimwhitespace
+    "   autocmd!
+    "   autocmd BufWritePre * silent! undojoin | %s/\s\+$//e | %s/\(\n\r\?\)\+\%$//e
+    " augroup END
   " }}}
 " }}}
 
@@ -393,8 +405,8 @@
   vmap <<          <Nop>
 
   " easier navigation in normal / visual / operator pending mode
-  noremap K     {
-  noremap J     }
+  noremap K     5gk
+  noremap J     5gj
   noremap H     g^
   noremap L     g_
 
@@ -431,6 +443,10 @@
   nnoremap <C-k> <C-w>k
   nnoremap <C-h> <C-w>h
   nnoremap <C-l> <C-w>l
+  tnoremap <C-h> <C-\><C-n><C-w>h
+  tnoremap <C-j> <C-\><C-n><C-w>j
+  tnoremap <C-k> <C-\><C-n><C-w>k
+  tnoremap <C-l> <C-\><C-n><C-w>l
 
   " Moves selected Lines up and Down with alt-j/k
   nnoremap ∆ :m .+1<CR>==
