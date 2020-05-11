@@ -14,6 +14,9 @@
   editor = nvim
   excludesfile = /home/ubuntu/.config/git/ignore
 
+[interactive]
+  diffFilter = delta --color-only
+
 
 [alias]
   co = checkout

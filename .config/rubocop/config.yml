@@ -43,3 +43,15 @@ Style/MixinUsage:
 # Style/HashTransformValues:
 #   # prefer .transform_values over .each_with_object({}) { ... }
 #   Enabled: true
+
+# Layout/SpaceAroundMethodCallOperator:
+#   Enabled: true
+
+# Lint/RaiseException:
+#   Enabled: true
+
+# Lint/StructNewOverride:
+#   Enabled: true
+
+# Style/ExponentialNotation:
+#   Enabled: true

@@ -166,9 +166,9 @@
   " TERMINAL BEHAVIOR {{{
     augroup TerminalBehavior
       autocmd!
-      autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth laststatus=0 noruler signcolumn=no noshowmode
+      autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth noruler signcolumn=no noshowmode
       autocmd TermOpen * startinsert
-      autocmd TermClose * set laststatus=2 showmode ruler
+      autocmd TermClose * set showmode ruler
     augroup END
   " }}}
   " EASYQUIT {{{
@@ -479,6 +479,9 @@
     nnoremap <leader>af :ALEFix<CR>
     nnoremap <f10> :ALEFix<CR>
 
+    " from: https://github.com/fohte/rubocop-daemon
+    let g:ale_ruby_rubocop_executable = 'rubocop-daemon-wrapper'
+
     let g:ale_linters = {
       \   'javascript': ['eslint'],
       \   'ruby':       ['rubocop'],
@@ -496,7 +499,7 @@
       \}
 
     let g:ale_fix_on_save        = 1
-    let g:ale_fix_on_save_ignore = { 'ruby': ['rubocop'], 'javascript': ['eslint', 'prettier'] }
+    let g:ale_fix_on_save_ignore = { 'javascript': ['eslint', 'prettier'] }
     let g:ale_linters_explicit   = 1
     let g:ale_sign_column_always = 1
     let g:ale_sign_error         = '!!'
