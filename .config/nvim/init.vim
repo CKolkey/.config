@@ -7,29 +7,28 @@
   endif
 
   call plug#begin()
-    Plug 'mbbill/undotree'
-    Plug 'romainl/vim-cool'
-    Plug 'Krasjet/auto.pairs'
-    Plug 'rhysd/clever-f.vim'
-    Plug 'justinmk/vim-sneak'
-    Plug 'sheerun/vim-polyglot'
-    Plug 'andymass/vim-matchup'
-    Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
-    Plug 'airblade/vim-gitgutter'
+    Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
+    Plug 'Krasjet/auto.pairs'                                     " Autoclose Parens intelligently
+    Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
+    Plug 'justinmk/vim-sneak'                                     " Quickly move to text with 's'
+    Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
+    Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
+    Plug 'pechorin/any-jump.vim'                                  " IDE like Reference Finding and Method Definitions
+    Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
+    Plug 'airblade/vim-gitgutter'                                 " Git Line status in left gutter
     Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh' }
-    Plug 'chaoren/vim-wordmotion'
-    " Plug 'junegunn/vim-easy-align'
-    Plug 'machakann/vim-highlightedyank'
+    Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
+    Plug 'junegunn/vim-easy-align'                                " Align characters across lines
+    Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
 
-    Plug 'justinmk/vim-dirvish'
-    Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }
-    Plug 'kristijanhusak/defx-icons'
+    Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
+    Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
 
-    Plug 'dense-analysis/ale'
-    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+    Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
     Plug 'Shougo/neco-syntax'
 
-    Plug 'ludovicchabant/vim-gutentags'
+    Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
     Plug 'skywind3000/gutentags_plus'
     Plug 'majutsushi/tagbar'
 
@@ -40,7 +39,7 @@
     Plug 'vim-airline/vim-airline-themes'
 
     Plug 'tpope/vim-rails'
-    Plug 'tpope/vim-endwise'
+    " Plug 'tpope/vim-endwise'
     Plug 'tpope/vim-repeat'
     Plug 'tpope/vim-fugitive'
     Plug 'tpope/vim-sensible'
@@ -345,6 +344,18 @@
       endif
     endfunction
   " }}}
+  " SMART ENTER FOR AUTOCOMPLETION {{{
+    function! SendCY()
+      call feedkeys("\<C-Y>", "t")
+      return ""
+    endfunction
+    function! SendCR()
+      call feedkeys("\<CR>", "n")
+      return ""
+    endfunction
+
+    " inoremap <silent> <CR> <C-R>=(pumvisible() ? SendCY() : SendCR())<CR>
+  "}}}
 " }}}
 
 " Key Mappings {{{
@@ -353,11 +364,9 @@
   nnoremap <leader>vi :tabe $MYVIMRC<cr>
   nnoremap <leader>ut :UndotreeToggle<cr>
   nnoremap <leader>pu :PlugUpdate<cr>
-  nnoremap <leader>pi :PlugInstall<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
   nnoremap <leader>fr :%s///gc<left><left><left><left>
-  nnoremap <leader>j J
 
   " More sane vertical navigation - respects columns
   nnoremap k gk
@@ -377,11 +386,6 @@
   nnoremap C "_C
   nnoremap cc "_cc
 
-  " Make s/S/ss behave like d/D/dd without saving to register
-  nnoremap s  "_d
-  nnoremap S  "_D
-  nnoremap ss "_dd
-
   " Don't yank whitespace at the beginning of a line
   nnoremap Y ^y$
 
@@ -397,33 +401,27 @@
   " And remove other navigations that are defined elsewhere
   map $            <Nop>
   map ^            <Nop>
-  map {            <Nop>
-  map }            <Nop>
+  " map {            <Nop>
+  " map }            <Nop>
   nmap >>          <Nop>
   nmap <<          <Nop>
   vmap >>          <Nop>
   vmap <<          <Nop>
 
   " easier navigation in normal / visual / operator pending mode
-  noremap K     5gk
-  noremap J     5gj
+  " noremap K     5gk
+  " noremap J     5gj
   noremap H     g^
   noremap L     g_
-
-  " easier one-off navigation in insert mode
-  inoremap <C-k> <Up>
-  inoremap <C-j> <Down>
-  inoremap <C-h> <Left>
-  inoremap <C-l> <Right>
 
   " Close pane using c-w
   noremap  <C-w> :bd<Cr>
 
   " Enter inserts newline without leaving Normal mode
-  nmap <s-cr> O<Esc>
-  nmap <cr>   o<Esc>
+  nnoremap <s-cr> O<Esc>
+  nnoremap <cr>   o<Esc>
 
-  " Search results centered please
+  " Center Search Results
   nnoremap <silent> n nzz
   nnoremap <silent> N Nzz
   nnoremap <silent> * *zz
@@ -506,6 +504,16 @@
     let g:ale_sign_warning       = '>>'
     let g:ale_lint_delay         = 0
   "}}}
+  " ANY-JUMP {{{
+    let g:any_jump_window_width_ratio  = 0.7
+    let g:any_jump_window_height_ratio = 0.6
+    let g:any_jump_window_top_offset   = 4
+
+    augroup anyjump
+      autocmd!
+      autocmd FileType any-jump setlocal nonumber norelativenumber signcolumn=no
+    augroup END
+  " }}}
   " CLEVER-F {{{
     let g:clever_f_smart_case        = 1
     let g:clever_f_fix_key_direction = 1
@@ -514,7 +522,7 @@
   " DEFX Filetree browser {{{
     nnoremap <silent>- :Defx<CR>
     call defx#custom#option('_', {
-      \ 'columns': 'indent:icons:filename:type',
+      \ 'columns': 'space:indent:icons:filename:type',
       \ 'winwidth': 50,
       \ 'split': 'vertical',
       \ 'direction': 'topleft',
@@ -527,11 +535,11 @@
 
     call defx#custom#column('filename', { 'root_marker_highlight': 'Ignore' })
 
-    let g:defx_icons_directory_symlink_icon  = '~>'
-    let g:defx_icons_directory_icon          = ' +'
-    let g:defx_icons_root_opened_tree_icon   = ' -'
-    let g:defx_icons_nested_opened_tree_icon = ' -'
-    let g:defx_icons_nested_closed_tree_icon = ' +'
+    let g:defx_icons_directory_symlink_icon  = '>'
+    let g:defx_icons_directory_icon          = '+'
+    let g:defx_icons_root_opened_tree_icon   = '-'
+    let g:defx_icons_nested_opened_tree_icon = '-'
+    let g:defx_icons_nested_closed_tree_icon = '+'
     let g:defx_icons_enable_syntax_highlight = 1
     let g:defx_icons_column_length           = 2
     let g:defx_icons_mark_icon               = '*'
@@ -629,44 +637,13 @@
     call deoplete#custom#option('smart_case', v:true)
     call deoplete#custom#option('min_pattern_length', 1)
   " }}}
-  " DIRVISH {{{
-    nnoremap _ :Dirvish<cr>
+  " EASY ALIGN {{{
+    " Start interactive EasyAlign in visual mode (e.g. vipga)
+    xmap ga <Plug>(EasyAlign)
 
-    let g:dirvish_mode = ':sort ,^.*[\/],'
-    augroup dirvish_config
-      autocmd!
-
-      " Map `t` to open in new tab.
-      autocmd FileType dirvish
-        \  nnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
-        \ |xnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
-
-      " Map `gr` to reload.
-      autocmd FileType dirvish nnoremap <silent><buffer>
-        \ gr :<C-U>Dirvish %<CR>
-
-      " Map `gh` to hide dot-prefixed files.  Press `R` to "toggle" (reload).
-      autocmd FileType dirvish nnoremap <silent><buffer>
-        \ gh :silent keeppatterns g@\v/\.[^\/]+/?$@d _<cr>:setl cole=3<cr>
-
-      " l opens file or folder
-      autocmd FileType dirvish nnoremap <silent><buffer>
-        \ l :<C-U>.call dirvish#open("edit", 0)<CR>
-
-      " h goes up a level
-      autocmd FileType dirvish nnoremap <silent><buffer>
-        \ h :<C-U>exe "Dirvish %:h".repeat(":h",v:count1)<CR>
-
-      " s opens horizontal split
-      autocmd FileType dirvish nnoremap <silent><buffer>
-        \ s :<C-U>.call dirvish#open("split", 1)<CR>
-
-    augroup END
+    " Start interactive EasyAlign for a motion/text object (e.g. gaip)
+    nmap ga <Plug>(EasyAlign)
   " }}}
-  " EASYALIGN{{{
-    xnoremap <leader>ea <Plug>(EasyAlign)
-    nnoremap <leader>ea <Plug>(EasyAlign)
-  "}}}
   " FZF{{{
     nnoremap <c-t> :Tags<cr>
     nnoremap <c-g> :RG<cr>
