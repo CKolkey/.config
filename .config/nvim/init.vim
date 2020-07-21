@@ -27,6 +27,7 @@
     Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
     Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
     Plug 'Shougo/neco-syntax'
+    Plug 'tbodt/deoplete-tabnine', { 'do': './install.sh' }
 
     Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
     Plug 'skywind3000/gutentags_plus'
@@ -115,13 +116,12 @@
     echoerr "Sorry, this version of (g)vim was not compiled with +multi_byte"
   endif
 
-  if (empty($TMUX))
-    if (has("nvim"))
-      let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-    endif
-    if (has("termguicolors"))
-      set termguicolors
-    endif
+  if (has("nvim"))
+    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+  endif
+
+  if (has("termguicolors"))
+    set termguicolors
   endif
 
   " As Root {{{
@@ -401,21 +401,28 @@
   " And remove other navigations that are defined elsewhere
   map $            <Nop>
   map ^            <Nop>
-  " map {            <Nop>
-  " map }            <Nop>
   nmap >>          <Nop>
   nmap <<          <Nop>
   vmap >>          <Nop>
   vmap <<          <Nop>
 
-  " easier navigation in normal / visual / operator pending mode
-  " noremap K     5gk
-  " noremap J     5gj
   noremap H     g^
   noremap L     g_
 
   " Close pane using c-w
   noremap  <C-w> :bd<Cr>
+
+  " window splits
+  nmap <leader>sw<left>  :topleft  vnew<CR>
+  nmap <leader>sw<right> :botright vnew<CR>
+  nmap <leader>sw<up>    :topleft  new<CR>
+  nmap <leader>sw<down>  :botright new<CR>
+
+  " buffer splits
+  nmap <leader>s<left>   :leftabove  vnew<CR>
+  nmap <leader>s<right>  :rightbelow vnew<CR>
+  nmap <leader>s<up>     :leftabove  new<CR>
+  nmap <leader>s<down>   :rightbelow new<CR>
 
   " Enter inserts newline without leaving Normal mode
   nnoremap <s-cr> O<Esc>
@@ -545,7 +552,7 @@
     let g:defx_icons_mark_icon               = '*'
     let g:defx_icons_copy_icon               = ''
     let g:defx_icons_move_icon               = ''
-    let g:defx_icons_parent_icon             = ''
+    let g:defx_icons_parent_icon             = ' '
     let g:defx_icons_default_icon            = ''
 
     augroup defx_colors
@@ -627,10 +634,10 @@
     let g:deoplete#enable_at_startup = 1
     call deoplete#custom#option({
       \ 'num_processes' : -1,
-      \ 'max_list'      : 20,
+      \ 'max_list'      : 25,
       \ 'sources'       : {
         \ '_': ['tag', 'buffer', 'file', 'syntax'],
-        \ 'ruby': ['tag', 'LanguageClient', 'buffer', 'file', 'syntax']
+        \ 'ruby': ['tag', 'buffer', 'LanguageClient', 'file', 'syntax']
         \ }
       \ })
     call deoplete#custom#option('auto_complete_delay', 0)
@@ -651,7 +658,9 @@
     nnoremap <c-b> :Buffers<cr>
 
     let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git}"'
-    let $FZF_DEFAULT_OPTS    = ' --color=dark --color=fg:15,bg:-1,hl:1,fg+:#ffffff,bg+:0,hl+:1 --color=info:0,prompt:0,pointer:12,marker:4,spinner:11,header:-1 --layout=reverse  --margin=1,4'
+
+    command! -bang -nargs=? -complete=dir Files
+    \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--margin=1,2']}), <bang>0)
 
     let g:fzf_layout = { 'window': 'call CreateCenteredFloatingWindow()' }
     let g:fzf_action = {
@@ -678,7 +687,7 @@
       let command_fmt     = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
       let initial_command = printf(command_fmt, shellescape(a:query))
       let reload_command  = printf(command_fmt, '{q}')
-      let spec            = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+      let spec            = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command, '--layout=reverse', '--margin=1,2']}
       call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
     endfunction
     command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)

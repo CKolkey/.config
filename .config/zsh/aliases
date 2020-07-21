@@ -23,6 +23,7 @@ alias gmm="git merge master"
 alias gc="git commit"
 alias gco="git checkout"
 alias amend="git commit -ammend"
+alias gx="g checkout"
 
 alias ip="curl ipinfo.io/ip"
 alias ips="ifconfig -a | perl -nle'/(\d+\.\d+\.\d+\.\d+)/ && print $1'"
