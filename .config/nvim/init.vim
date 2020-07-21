@@ -27,28 +27,26 @@
     Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
     Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
     Plug 'Shougo/neco-syntax'
-    Plug 'tbodt/deoplete-tabnine', { 'do': './install.sh' }
 
     Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
-    Plug 'skywind3000/gutentags_plus'
-    Plug 'majutsushi/tagbar'
+    Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
+    Plug 'majutsushi/tagbar'                                      " Sidebar for showing tags in file
 
-    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
     Plug 'junegunn/fzf.vim'
 
-    Plug 'vim-airline/vim-airline'
+    Plug 'vim-airline/vim-airline'                                " Status Bar and Tab Bar
     Plug 'vim-airline/vim-airline-themes'
 
-    Plug 'tpope/vim-rails'
-    " Plug 'tpope/vim-endwise'
-    Plug 'tpope/vim-repeat'
-    Plug 'tpope/vim-fugitive'
-    Plug 'tpope/vim-sensible'
-    Plug 'tpope/vim-surround'
-    Plug 'tpope/vim-commentary'
+    Plug 'tpope/vim-rails'                                        " Rails Specific Commands
+    Plug 'tpope/vim-repeat'                                       " Improvements to . repeat
+    Plug 'tpope/vim-fugitive'                                     " Git Integration
+    Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
+    Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
+    Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
-    Plug 'joshdick/onedark.vim'
-    Plug 'ryanoasis/vim-devicons'
+    Plug 'joshdick/onedark.vim'                                   " Colorscheme
+    Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
   call plug#end()
 " }}}
 
