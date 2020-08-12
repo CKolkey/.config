@@ -1,14 +1,16 @@
 alias aliases="v ~/.config/zsh/aliases"
 alias kittyconf="v ~/.config/kitty/kitty.conf"
 alias config='/usr/bin/git --git-dir=$HOME/.config.git/ --work-tree=$HOME'
-alias ssh-aws="ssh -i ~/code/aws-keypair-dev.pem ubuntu@$(aws ec2 describe-instances | rg "i-018f42b3bbecf83d0" | awk '{print $14}')"
-alias aws-url="echo "http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000" | pbcopy"
-alias open-aws="open http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000"
 alias lg="lazygit"
 alias fzkill="ps -ef | fzf | awk '{print $2}' | xargs kill"
+# Uncomment on Mac
+# alias aws-url="echo "http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000" | pbcopy"
+# alias open-aws="open http://$(aws ec2 describe-instances | rg 'i-018f42b3bbecf83d0' | awk '{print $14}'):3000"
 
 alias zshrc="v ~/.zshrc"
 alias ohmyzsh="v ~/.oh-my-zsh"
+
+alias restart-et="sudo systemctl restart et"
 
 alias v='nvim'
 alias vi='nvim'
@@ -52,4 +54,4 @@ alias herokyu="heroku"
 alias production-console="production run rails c"
 alias music="cmus"
 
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+# test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"

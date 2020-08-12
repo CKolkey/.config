@@ -1,6 +1,5 @@
 # Launch TMUX if it's not active
 [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
-
 # Close connection after TMUX terminates
 [ -z "$TMUX" ] && clear && exit
 
@@ -106,6 +105,3 @@ export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 export PATH="/snap/bin:$PATH"
 export PATH="$HOME/neovim/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-
-# Update Bundler Audit on login. Quietly.
-bundle audit update >/dev/null 2>&1

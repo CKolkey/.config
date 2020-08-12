@@ -12,6 +12,8 @@
     Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
     Plug 'justinmk/vim-sneak'                                     " Quickly move to text with 's'
     Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
+    Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
+    Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
     Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
     Plug 'pechorin/any-jump.vim'                                  " IDE like Reference Finding and Method Definitions
     Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
@@ -44,6 +46,7 @@
     Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
     Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
     Plug 'tpope/vim-commentary'                                   " Comment-out lines
+    Plug 'tpope/vim-eunuch'                                       " Syntatic sugar for unix command like SudoWrite and Mkdir
 
     Plug 'joshdick/onedark.vim'                                   " Colorscheme
     Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
@@ -352,7 +355,7 @@
       return ""
     endfunction
 
-    " inoremap <silent> <CR> <C-R>=(pumvisible() ? SendCY() : SendCR())<CR>
+    inoremap <silent> <CR> <C-R>=(pumvisible() ? SendCY() : SendCR())<CR>
   "}}}
 " }}}
 
@@ -365,6 +368,9 @@
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
   nnoremap <leader>fr :%s///gc<left><left><left><left>
+
+  " For debugging ColorSchemes
+  map <F10> :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<cr>
 
   " More sane vertical navigation - respects columns
   nnoremap k gk
@@ -411,16 +417,16 @@
   noremap  <C-w> :bd<Cr>
 
   " window splits
-  nmap <leader>sw<left>  :topleft  vnew<CR>
-  nmap <leader>sw<right> :botright vnew<CR>
-  nmap <leader>sw<up>    :topleft  new<CR>
-  nmap <leader>sw<down>  :botright new<CR>
+  nmap <silent><leader>sw<left>  :topleft  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>sw<right> :botright vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>sw<up>    :topleft  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>sw<down>  :botright new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
 
   " buffer splits
-  nmap <leader>s<left>   :leftabove  vnew<CR>
-  nmap <leader>s<right>  :rightbelow vnew<CR>
-  nmap <leader>s<up>     :leftabove  new<CR>
-  nmap <leader>s<down>   :rightbelow new<CR>
+  nmap <silent><leader>s<left>   :leftabove  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>s<right>  :rightbelow vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>s<up>     :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><leader>s<down>   :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
 
   " Enter inserts newline without leaving Normal mode
   nnoremap <s-cr> O<Esc>
@@ -553,13 +559,6 @@
     let g:defx_icons_parent_icon             = ' '
     let g:defx_icons_default_icon            = ''
 
-    augroup defx_colors
-      autocmd!
-      autocmd ColorScheme * highlight DefxIconsOpenedTreeIcon guifg=#FFCB6B
-      autocmd ColorScheme * highlight DefxIconsNestedTreeIcon guifg=#FFCB6B
-      autocmd ColorScheme * highlight DefxIconsClosedTreeIcon guifg=#FFCB6B
-    augroup END
-
     augroup defx_init
       autocmd!
       autocmd BufWritePost * call defx#redraw() " Redraw on file change
@@ -641,6 +640,51 @@
     call deoplete#custom#option('auto_complete_delay', 0)
     call deoplete#custom#option('smart_case', v:true)
     call deoplete#custom#option('min_pattern_length', 1)
+  " }}}
+  " DIRVISH {{{
+  "   let g:dirvish_mode = ':sort ,^.*[\/],'
+  "   let g:dirvish_git_show_icons = 0
+
+  "   augroup dirvish_config
+  "     autocmd!
+  "     autocmd FileType dirvish setlocal autoread
+
+  "     autocmd FileType dirvish
+  "       \ nnoremap <silent><buffer> d yy:Delete <c-r>"<cr>
+
+  "     autocmd FileType dirvish
+  "       \ nnoremap <silent><buffer> q <Plug>(dirvish_quit)
+
+  "     " Map `t` to open in new tab.
+  "     autocmd FileType dirvish
+  "       \  nnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
+  "       \ |xnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
+
+  "     " Map `gr` to reload.
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ gr :<C-U>Dirvish %<CR>
+
+  "     " Map `gh` to hide dot-prefixed files.  Press `R` to "toggle" (reload).
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ gh :silent keeppatterns g@\v/\.[^\/]+/?$@d _<cr>:setl cole=3<cr>
+
+  "     " l opens file or folder
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ l :<C-U>.call dirvish#open("edit", 0)<CR>
+
+  "     " h goes up a level
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ h :<C-U>exe "Dirvish %:h".repeat(":h",v:count1)<CR>
+
+  "     " s opens horizontal split
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ s :<C-U>.call dirvish#open("split", 1)<CR>
+
+  "     " v opens horizontal split
+  "     autocmd FileType dirvish nnoremap <silent><buffer>
+  "       \ v :<C-U>.call dirvish#open("vsplit", 1)<CR>
+
+  "   augroup END
   " }}}
   " EASY ALIGN {{{
     " Start interactive EasyAlign in visual mode (e.g. vipga)
@@ -798,6 +842,9 @@
       let g:LanguageClient_autoStart = 1
       let g:LanguageClient_autoStop  = 0
     " }}}
+    " POLYGLOT {{{
+      " let g:polyglot_disabled = ['ruby', 'eruby', 'slim']
+    " }}}
   " SNEAK {{{
     let g:sneak#label  = 0
     let g:sneak#s_next = 1
@@ -818,8 +865,15 @@
 
 " Language Settings {{{
   " Ruby {{{
-    let ruby_operators = 1
-    let ruby_pseudo_operators = 1
+    let ruby_operators               = 1
+    let ruby_line_continuation_error = 1
+    let ruby_pseudo_operators        = 1
+    let ruby_space_errors            = 1
+    let ruby_global_variable_error   = 1
+    let ruby_spellcheck_strings      = 1
+  " }}}
+  " Slim {{{
+    autocmd BufNewFile,BufRead *.slim setlocal filetype=slim
   " }}}
 " }}}
 
@@ -843,8 +897,8 @@
       autocmd ColorScheme * call onedark#set_highlight("CursorLineNr",        { "fg": s:yellow      })
       autocmd ColorScheme * call onedark#set_highlight("rubyConstant",        { "fg": s:dark_yellow })
       autocmd ColorScheme * call onedark#set_highlight("rubySymbolDelimiter", { "fg": s:red         })
-      autocmd ColorScheme * call onedark#set_highlight("rubySymbol",          { "fg": s:yellow      })
       autocmd ColorScheme * call onedark#set_highlight("rubyKeywordAsMethod", { "fg": s:blue        })
+      autocmd ColorScheme * call onedark#set_highlight("rubySymbol",          { "fg": s:yellow      })
       autocmd ColorScheme * call onedark#set_highlight("rubyPseudoVariable",  { "fg": s:red         })
       autocmd ColorScheme * call onedark#set_highlight("rubyBoolean",         { "fg": s:red         })
       autocmd ColorScheme * call onedark#set_highlight("rubyInteger",         { "fg": s:red         })
