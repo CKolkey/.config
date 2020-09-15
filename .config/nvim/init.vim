@@ -789,14 +789,6 @@
     " See function: SMART ENTER FOR AUTOCOMPLETION
     let g:endwise_no_mappings = 1
   " }}}
-  " FAR {{{
-    let g:far#source            = 'rgnvim'
-    let g:far#window_layout     = 'tab'
-    let g:far#default_file_mask = '**/*.*'
-    let g:far#preview_window_height = 20
-
-    let g:far#debug = 1
-  " }}}
   " FERRET {{{
     nnoremap <silent> <Up> :cprevious<CR>
     nnoremap <silent> <Down> :cnext<CR>
