@@ -352,7 +352,6 @@
   let mapleader = "\\"
 
   nnoremap <leader>vi :e $MYVIMRC<cr>
-  nnoremap <leader>ut :UndotreeToggle<cr>
   nnoremap <leader>pu :PlugUpdate<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
@@ -703,7 +702,6 @@
     let g:gitgutter_sign_removed           = '▁'
   " }}}
   " GUTENTAGS {{{
-
     " enable gtags module
     let g:gutentags_modules = ['ctags', 'gtags_cscope']
 
@@ -814,11 +812,6 @@
     highlight Sneak guifg=black guibg=red
     highlight SneakScope guifg=red guibg=yellow
     highlight SneakLabel guifg=red guibg=yellow
-  " }}}
-  " UNDO TREE {{{
-    let g:undotree_WindowLayout       = 4
-    let g:undotree_SetFocusWhenToggle = 1
-    let g:undotree_ShortIndicators    = 1
   " }}}
 " }}}
 
