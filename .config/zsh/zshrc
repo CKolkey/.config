@@ -92,8 +92,10 @@ else
   compinit -C -i
 fi
 
-zmodload -i zsh/complist
-kitty + complete setup zsh | source /dev/stdin
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  zmodload -i zsh/complist
+  kitty + complete setup zsh | source /dev/stdin
+fi
 
 # FZF
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
