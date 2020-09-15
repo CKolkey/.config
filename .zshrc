@@ -1,1 +1,1 @@
-/Users/Cameron/.config/zsh/zshrc
+/home/ubuntu/.config/zsh/zshrc
