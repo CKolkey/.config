@@ -1,0 +1,26 @@
+{
+  "title": "Change Control-i to send F20",
+  "rules": [
+    {
+      "description": "Prevent collision of Ctrl-i and Tab: Map Ctrl-i to F20",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "i",
+            "modifiers": {
+              "mandatory": [ "control" ],
+              "optional": [ "any" ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "f20",
+              "modifiers": ["fn"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
