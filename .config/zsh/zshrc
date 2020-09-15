@@ -1,7 +1,14 @@
-# Launch TMUX if it's not active
-[ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
-# Close connection after TMUX terminates
-[ -z "$TMUX" ] && clear && exit
+if [[ $OSTYPE == "linux-gnu"* ]]; then
+  # SSH Agent
+  keychain id_rsa
+  . ~/.keychain/$(uname -n)-sh)
+fi
+
+  # Launch TMUX if it's not active
+  [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
+  # Close connection after TMUX terminates
+  [ -z "$TMUX" ] && clear && exit
+
 
 # Oh My ZSH Stuff
 COMPLETION_WAITING_DOTS="true"
@@ -96,6 +103,7 @@ export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.g
 # Load rbenv if installed
 # export PATH="${HOME}/.rbenv/bin:${PATH}"
 type -a rbenv > /dev/null && eval "$(rbenv init -)"
+export DISABLE_SPRING=1
 
 export PATH="/usr/local/opt/python/libexec/bin:$PATH"
 export PATH="/usr/local/opt/sqlite/bin:$PATH"

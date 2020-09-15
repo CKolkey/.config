@@ -7,10 +7,13 @@
   endif
 
   call plug#begin()
+    Plug 'wincent/ferret'                                         " Find and Replace across files
+    Plug 'wincent/scalpel'                                        " Replace word under Cursor in buffer/selection. Activate with <leader-e>
     Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
     Plug 'Krasjet/auto.pairs'                                     " Autoclose Parens intelligently
     Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
     Plug 'justinmk/vim-sneak'                                     " Quickly move to text with 's'
+    Plug 'qpkorr/vim-bufkill'                                     " Close Buffers without closing Splits
     Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
     Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
     Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
@@ -20,8 +23,9 @@
     Plug 'airblade/vim-gitgutter'                                 " Git Line status in left gutter
     Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh' }
     Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
-    Plug 'junegunn/vim-easy-align'                                " Align characters across lines
+    Plug 'tommcdo/vim-lion'                                       " Align characters across lines
     Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
+    Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
 
     Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
     Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
@@ -41,6 +45,7 @@
     Plug 'vim-airline/vim-airline-themes'
 
     Plug 'tpope/vim-rails'                                        " Rails Specific Commands
+    Plug 'tpope/vim-endwise'                                        " Rails Specific Commands
     Plug 'tpope/vim-repeat'                                       " Improvements to . repeat
     Plug 'tpope/vim-fugitive'                                     " Git Integration
     Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
@@ -86,11 +91,13 @@
   set winwidth=80
   set winheight=10
   set list
-  set listchars=tab:››,nbsp:·,trail:•,extends:»,precedes:«
-  set shortmess=atIAc       "Hidden startup messages
+  set listchars=tab:››,nbsp:⦸,trail:•,extends:»,precedes:«
+  set shortmess=atIAcW      " Hidden startup messages
   set hidden                " allows you to nav away from an unsaved buffer
   set updatetime=300        " You will have bad experience for diagnostic messages when it's default 4000.
   set signcolumn=yes        " always show signcolumns
+  set fillchars+=eob:\      " Don't show ~ off end of buffer
+  set virtualedit=block     " allow cursor to move where there is no text in visual block mode
 
   set backup
   set undofile              " Persistant Undo
@@ -110,12 +117,8 @@
   set wildignore+=.cache,node_modules,package-lock.json,yarn.lock,dist,.git
   set wildignore+=.vimruncmd
 
-  if has("multi_byte")
-    set encoding=utf-8
-    setglobal fileencoding=utf-8
-  else
-    echoerr "Sorry, this version of (g)vim was not compiled with +multi_byte"
-  endif
+  set encoding=utf-8
+  setglobal fileencoding=utf-8
 
   if (has("nvim"))
     let $NVIM_TUI_ENABLE_TRUE_COLOR=1
@@ -148,6 +151,7 @@
   augroup autosavebuffer
     autocmd!
     autocmd InsertLeave * nested silent! update
+    " autocmd InsertLeave * nested call timer_start(0, { -> execute("silent! update") })
   augroup end
 " }}}
   " RELATIVE LINE NUMBERS IN NORMAL MODE, ABSOLUTE NUMBERS IN INSERT MODE {{{
@@ -167,7 +171,7 @@
     augroup TerminalBehavior
       autocmd!
       autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth noruler signcolumn=no noshowmode
-      autocmd TermOpen * startinsert
+      autocmd TermEnter * startinsert
       autocmd TermClose * set showmode ruler
     augroup END
   " }}}
@@ -183,13 +187,6 @@
       autocmd BufWinEnter * set fo-=c fo-=r fo-=o " Disable continuation of comments to the next line
       autocmd BufWinEnter * set formatoptions+=j  " Remove a comment leader when joining lines
     augroup END
-  " }}}
-  " TRIM WHITESPACE {{{
-    " Doing this in vim is blocking
-    " augroup trimwhitespace
-    "   autocmd!
-    "   autocmd BufWritePre * silent! undojoin | %s/\s\+$//e | %s/\(\n\r\?\)\+\%$//e
-    " augroup END
   " }}}
 " }}}
 
@@ -223,8 +220,8 @@
         nnoremap k gk
         nnoremap j gj
         nnoremap l l
-        nnoremap K {
-        nnoremap J }
+        nnoremap K K
+        nnoremap J J
         nnoremap H ^
         nnoremap L $
         nnoremap = =
@@ -233,12 +230,12 @@
         echom ''
       endif
     endfunction
-    nnoremap <silent> <Leader>r :call ToggleResizeMode()<CR>
+    nnoremap <silent><nowait> <Leader>r :call ToggleResizeMode()<CR>
   " }}}
   " TERMINAL DRAWER {{{
     " depends on: CLEAN UI and Terminal Behavior
-    nnoremap <silent><leader>\           :call ToggleTerminalDrawer()<CR>
-    tnoremap <silent><leader>\ <C-\><C-n>:call ToggleTerminalDrawer()<CR>
+    nnoremap <silent>``           :call ToggleTerminalDrawer()<CR>
+    tnoremap <silent>`` <C-\><C-n>:call ToggleTerminalDrawer()<CR>
 
     let g:terminal_drawer = { 'win_id': v:null, 'buffer_id': v:null }
     function! ToggleTerminalDrawer() abort
@@ -346,28 +343,25 @@
     endfunction
   " }}}
   " SMART ENTER FOR AUTOCOMPLETION {{{
-    function! SendCY()
-      call feedkeys("\<C-Y>", "t")
-      return ""
-    endfunction
-    function! SendCR()
-      call feedkeys("\<CR>", "n")
-      return ""
-    endfunction
-
-    inoremap <silent> <CR> <C-R>=(pumvisible() ? SendCY() : SendCR())<CR>
+    " complete_info()["selected"] is '-1' when nothing is selected
+    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] == "-1" ?  "\<CR>\<Plug>DiscretionaryEnd" :  "\<C-Y>\<Plug>DiscretionaryEnd\<Space>") : "\<CR>\<Plug>DiscretionaryEnd" )
   "}}}
 " }}}
 
 " Key Mappings {{{
   let mapleader = "\\"
 
-  nnoremap <leader>vi :tabe $MYVIMRC<cr>
+  nnoremap <leader>vi :e $MYVIMRC<cr>
   nnoremap <leader>ut :UndotreeToggle<cr>
   nnoremap <leader>pu :PlugUpdate<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
   nnoremap <leader>fr :%s///gc<left><left><left><left>
+  " Open Last Buffer
+  nnoremap <Leader><Leader> <C-^>
+
+  " Avoid unintentional switches to Ex mode.
+  nnoremap Q <nop>
 
   " For debugging ColorSchemes
   map <F10> :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<cr>
@@ -413,24 +407,20 @@
   noremap H     g^
   noremap L     g_
 
-  " Close pane using c-w
-  noremap  <C-w> :bd<Cr>
-
-  " window splits
-  nmap <silent><leader>sw<left>  :topleft  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>sw<right> :botright vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>sw<up>    :topleft  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>sw<down>  :botright new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  " Close split using c-q, close pane keeping split with c-w
+  " plugin: bufkill
+  noremap  <C-w> :BW<Cr>
+  noremap  <C-q> :bw<Cr>
 
   " buffer splits
-  nmap <silent><leader>s<left>   :leftabove  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>s<right>  :rightbelow vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>s<up>     :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><leader>s<down>   :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sh  :leftabove  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sl  :rightbelow vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sj  :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sk  :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
 
   " Enter inserts newline without leaving Normal mode
-  nnoremap <s-cr> O<Esc>
-  nnoremap <cr>   o<Esc>
+  nmap <s-cr> O<Esc>
+  nmap <cr>   o<Esc>
 
   " Center Search Results
   nnoremap <silent> n nzz
@@ -438,8 +428,6 @@
   nnoremap <silent> * *zz
   nnoremap <silent> # #zz
 
-  " jump list (previous, next)
-  nnoremap <C-p> <C-i>
 
   " use tab and shift tab to indent and de-indent code
   nnoremap <Tab>   >>
@@ -447,23 +435,26 @@
   vnoremap <Tab>   >><Esc>gv
   vnoremap <S-Tab> <<<Esc>gv
 
-  " Quicker window movement
-  nnoremap <C-j> <C-w>j
-  nnoremap <C-k> <C-w>k
-  nnoremap <C-h> <C-w>h
-  nnoremap <C-l> <C-w>l
+  " jump list next (F20 is what c-i sends, thanks to Karabiner. This addresses collision with Tab)
+  nnoremap <F20> <c-i>
+
+  " " Quicker window movement
+  " nnoremap <C-j> <C-w>j
+  " nnoremap <C-k> <C-w>k
+  " nnoremap <C-h> <C-w>h
+  " nnoremap <C-l> <C-w>l
   tnoremap <C-h> <C-\><C-n><C-w>h
   tnoremap <C-j> <C-\><C-n><C-w>j
   tnoremap <C-k> <C-\><C-n><C-w>k
   tnoremap <C-l> <C-\><C-n><C-w>l
 
   " Moves selected Lines up and Down with alt-j/k
-  nnoremap ∆ :m .+1<CR>==
-  nnoremap ˚ :m .-2<CR>==
-  inoremap ∆ <Esc>:m .+1<CR>==gi
-  inoremap ˚ <Esc>:m .-2<CR>==gi
-  vnoremap ∆ :m '>+1<CR>gv=gv
-  vnoremap ˚ :m '<-2<CR>gv=gv
+  nnoremap <silent> ∆ :m .+1<CR>==
+  nnoremap <silent> ˚ :m .-2<CR>==
+  inoremap <silent> ∆ <Esc>:m .+1<CR>==gi
+  inoremap <silent> ˚ <Esc>:m .-2<CR>==gi
+  vnoremap <silent> ∆ :m '>+1<CR>gv=gv
+  vnoremap <silent> ˚ :m '<-2<CR>gv=gv
 " }}}
 
 " Plugin Settings & Mappings {{{
@@ -490,10 +481,11 @@
 
     " from: https://github.com/fohte/rubocop-daemon
     let g:ale_ruby_rubocop_executable = 'rubocop-daemon-wrapper'
+    let g:ale_ruby_reek_executable    = 'bundle'
 
     let g:ale_linters = {
       \   'javascript': ['eslint'],
-      \   'ruby':       ['rubocop'],
+      \   'ruby':       ['rubocop', 'reek', 'solargraph'],
       \}
 
     let g:ale_fixers = {
@@ -508,12 +500,11 @@
       \}
 
     let g:ale_fix_on_save        = 1
-    let g:ale_fix_on_save_ignore = { 'javascript': ['eslint', 'prettier'] }
+    let g:ale_fix_on_save_ignore = { 'javascript': ['prettier'] }
     let g:ale_linters_explicit   = 1
     let g:ale_sign_column_always = 1
     let g:ale_sign_error         = '!!'
-    let g:ale_sign_warning       = '>>'
-    let g:ale_lint_delay         = 0
+    let g:ale_sign_warning       = '~>'
   "}}}
   " ANY-JUMP {{{
     let g:any_jump_window_width_ratio  = 0.7
@@ -528,7 +519,12 @@
   " CLEVER-F {{{
     let g:clever_f_smart_case        = 1
     let g:clever_f_fix_key_direction = 1
-    " let g:clever_f_mark_char_color   = 'Function'
+    " let g:clever_f_mark_char_color   = ''
+
+    augroup clever-f-plugin-set-color
+      autocmd!
+      autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
+    augroup END
   " }}}
   " DEFX Filetree browser {{{
     nnoremap <silent>- :Defx<CR>
@@ -538,11 +534,10 @@
       \ 'split': 'vertical',
       \ 'direction': 'topleft',
       \ 'show_ignored_files': 1,
-      \ 'buffer_name': 'defx',
       \ 'resume': 1,
       \ 'toggle': 1,
-      \ 'root_marker': ':',
-      \})
+      \ 'root_marker': ' ',
+    \})
 
     call defx#custom#column('filename', { 'root_marker_highlight': 'Ignore' })
 
@@ -574,41 +569,41 @@
       setl signcolumn=no
 
       " Define Mappings
-      nnoremap <silent><buffer><expr> <esc>
+      nnoremap <silent><nowait><buffer><expr> <esc>
         \ defx#do_action('quit')
-      nnoremap <silent><buffer><expr> <CR>
+      nnoremap <silent><nowait><buffer><expr> <CR>
         \ defx#do_action('multi', ['drop', 'quit'])
-      nnoremap <silent><buffer><expr> .
+      nnoremap <silent><nowait><buffer><expr> .
         \ defx#do_action('toggle_ignored_files')
-      nnoremap <silent><buffer><expr> c
+      nnoremap <silent><nowait><buffer><expr> c
         \ defx#do_action('copy')
-      nnoremap <silent><buffer><expr> q
+      nnoremap <silent><nowait><buffer><expr> q
         \ defx#do_action('quit')
-      nnoremap <silent><buffer><expr> m
+      nnoremap <silent><nowait><buffer><expr> m
         \ defx#do_action('move')
-      nnoremap <silent><buffer><expr> p
+      nnoremap <silent><nowait><buffer><expr> p
         \ defx#do_action('paste')
-      nnoremap <silent><buffer><expr> l
+      nnoremap <silent><nowait><buffer><expr> l
         \ defx#do_action('open_tree')
-      nnoremap <silent><buffer><expr> h
+      nnoremap <silent><nowait><buffer><expr> h
         \ defx#do_action('close_tree')
-      nnoremap <silent><buffer><expr> v
+      nnoremap <silent><nowait><buffer><expr> v
         \ defx#do_action('multi', [['drop', 'vsplit'], 'quit'])
-      nnoremap <silent><buffer><expr> s
+      nnoremap <silent><nowait><buffer><expr> s
         \ defx#do_action('multi', [['drop', 'split'], 'quit'])
-      nnoremap <silent><buffer><expr> t
+      nnoremap <silent><nowait><buffer><expr> t
         \ defx#do_action('drop', 'tabedit')
-      nnoremap <silent><buffer><expr> n
+      nnoremap <silent><nowait><buffer><expr> n
         \ defx#do_action('new_file')
-      nnoremap <silent><buffer><expr> d
+      nnoremap <silent><nowait><buffer><expr> dd
         \ defx#do_action('remove')
-      nnoremap <silent><buffer><expr> r
+      nnoremap <silent><nowait><buffer><expr> r
         \ defx#do_action('rename')
-      nnoremap <silent><buffer><expr> <C-r>
+      nnoremap <silent><nowait><buffer><expr> <C-r>
         \ defx#do_action('redraw')
-      nnoremap <silent><buffer><expr> >
+      nnoremap <silent><nowait><buffer><expr> >
         \ defx#do_action('resize', defx#get_context().winwidth + 10)
-      nnoremap <silent><buffer><expr> <
+      nnoremap <silent><nowait><buffer><expr> <
         \ defx#do_action('resize', defx#get_context().winwidth - 10)
     endfunction
   " }}}
@@ -618,10 +613,10 @@
     inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
     "<TAB>: completion.
-    inoremap <silent><expr> <TAB>
-          \ pumvisible() ? "\<C-n>" :
-          \ <SID>check_back_space() ? "\<TAB>" :
-          \ deoplete#manual_complete()
+    " inoremap <silent><expr> <TAB>
+    "       \ pumvisible() ? "\<C-n>" :
+    "       \ <SID>check_back_space() ? "\<TAB>" :
+    "       \ deoplete#manual_complete()
 
     function! s:check_back_space() abort
       let col = col('.') - 1
@@ -642,64 +637,187 @@
     call deoplete#custom#option('min_pattern_length', 1)
   " }}}
   " DIRVISH {{{
-  "   let g:dirvish_mode = ':sort ,^.*[\/],'
-  "   let g:dirvish_git_show_icons = 0
+    " Helper Functions {{{
+      " function! IsPreviouslyYankedItemValid()
+      "   return @d != ''
+      " endfunction
 
-  "   augroup dirvish_config
-  "     autocmd!
-  "     autocmd FileType dirvish setlocal autoread
+      " function! PromptUserForRenameOrSkip(filename)
+      "   let rename_or_skip = input(a:filename.' already exists. Rename it or skip operation? (r/s) ')
+      "   if rename_or_skip != 'r'
+      "     return ''
+      "   else
+      "     return input('Rename: ', a:filename)
+      "   endif
+      " endfunction
 
-  "     autocmd FileType dirvish
-  "       \ nnoremap <silent><buffer> d yy:Delete <c-r>"<cr>
+      " function! MovePreviouslyYankedItemToCurrentDirectory()
+      "   if !IsPreviouslyYankedItemValid()
+      "     echomsg 'Nothing to move.'
+      "   else
+      "     let item          = trim(@d, '/\')
+      "     let item_folder   = fnamemodify(item, ':h')
+      "     let item_filename = fnamemodify(item, ':t')
 
-  "     autocmd FileType dirvish
-  "       \ nnoremap <silent><buffer> q <Plug>(dirvish_quit)
+      "     let item_finalname = item_filename
+      "     if !empty(glob(item_finalname))
+      "       let item_finalname = PromptUserForRenameOrSkip(item_filename)
+      "       if item_finalname == ''
+      "         return
+      "       endif
+      "     endif
 
-  "     " Map `t` to open in new tab.
-  "     autocmd FileType dirvish
-  "       \  nnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
-  "       \ |xnoremap <silent><buffer> t :call dirvish#open('tabedit', 0)<CR>
+      "     silent execute(printf(':!mv /%s %s/%s', item, getcwd(), item_finalname))
+      "   endif
+      " endfunction
 
-  "     " Map `gr` to reload.
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ gr :<C-U>Dirvish %<CR>
+      " function! DeleteItemUnderCursor()
+      "   let target = trim(getline('.'), '/\')
+      "   let filename = fnamemodify(target, ':t')
+      "   silent execute(printf(':!rm -rf "%s"', filename))
+      "   normal R
+      " endfunction
 
-  "     " Map `gh` to hide dot-prefixed files.  Press `R` to "toggle" (reload).
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ gh :silent keeppatterns g@\v/\.[^\/]+/?$@d _<cr>:setl cole=3<cr>
+      " function! RenameItemUnderCursor()
+      "   let target   = trim(getline('.'), '/\')
+      "   let filename = fnamemodify(target, ':t')
+      "   let newname  = input('Rename: ', filename)
+      "   silent execute(printf(':!mv /"%s" "%s"', target, newname))
+      "   normal R
+      " endfunction
 
-  "     " l opens file or folder
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ l :<C-U>.call dirvish#open("edit", 0)<CR>
+      " function! CreateFileOrDir()
+      "   let new = input('New File/Directory: ')
+      "   redraw
+      "   if trim(new) == ''
+      "     return
+      "   elseif strcharpart(new, len(new) - 1, 1) == '/'
+      "     call CreateDirectory(new)
+      "   else
+      "     call CreateFile(new)
+      "   endif
+      " endfunction
 
-  "     " h goes up a level
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ h :<C-U>exe "Dirvish %:h".repeat(":h",v:count1)<CR>
+      " function! CreateDirectory(dirname)
+      "   if isdirectory(glob(a:dirname))
+      "     redraw
+      "     echomsg printf('"%s" already exists.', a:dirname)
+      "   else
+      "     silent execute(printf(':!mkdir "%s"', a:dirname))
+      "     normal R
+      "   endif
+      " endfunction
 
-  "     " s opens horizontal split
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ s :<C-U>.call dirvish#open("split", 1)<CR>
+      " function! CreateFile(filename)
+      "   if !empty(glob(a:filename))
+      "     redraw
+      "     echomsg printf('"%s" already exists.', a:filename)
+      "   else
+      "     silent execute(printf(':!touch "%s"', a:filename))
+      "     normal R
+      "   endif
+      " endfunction
 
-  "     " v opens horizontal split
-  "     autocmd FileType dirvish nnoremap <silent><buffer>
-  "       \ v :<C-U>.call dirvish#open("vsplit", 1)<CR>
+      " function! PreviewFile(splitcmd, giveFocus)
+      "   let path  = trim(getline('.'))
+      "   let bufnr = bufnr()
 
-  "   augroup END
+      "   if isdirectory(path)
+      "     return
+      "   endif
+
+      "   let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
+      "   if previewwinid == 0
+      "     exec(a:splitcmd. ' ' .path)
+      "     call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+      "   else
+      "     call win_gotoid(previewwinid)
+      "     if win_getid() == previewwinid
+      "       exec("edit ".path)
+      "     else
+      "       exec(a:splitcmd. ' ' .path)
+      "       call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+      "     endif
+      "   endif
+
+      "   if !a:giveFocus
+      "     exec(printf('wincmd %s', (a:splitcmd == 'vsplit' ? 'h' : 'k')))
+      "   endif
+      " endfunction
+    " }}}
+    " nnoremap <silent>- :Dirvish<CR>
+    " let g:dirvish_mode = ':sort ,^.*[\/],'
+    " let g:dirvish_git_show_icons = 0
+
+    " augroup dirvish_config
+    "   autocmd!
+    "   autocmd FileType dirvish setlocal nonumber norelativenumber autoread
+
+    "   autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
+    "   autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+    "   autocmd FileType dirvish let b:vifm_mappings=1 | setlocal foldcolumn=1
+    "   autocmd FileType dirvish silent! lcd %:p:h " Change working DIR when opening a file
+
+    "   " Quit Dirvish
+    "   autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
+    "   autocmd FileType dirvish nmap <silent> <buffer> <nowait> - gq
+
+    "   " Preview File in V Split
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> s :call PreviewFile('vsplit', 0)<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> S :call PreviewFile('vsplit', 1)<CR>
+
+    "   " Preview File/Folder in H Split
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
+
+    "   " Show file stats (size, permissions, timestamp)
+    "   autocmd FileType dirvish nnoremap <buffer> , <Plug>(dirvish_K)
+
+    "   " Navigation and Opening
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> h :<C-U>exe "Dirvish %:h".repeat(":h",v:count1)<CR>
+
+    "   " Filesystem Operations
+    "   autocmd FileType dirvish nnoremap <buffer> <nowait> y ^"dy$ :echo 'Copied: <C-R>"'<cr>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> n :call CreateFileOrDir()<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> p :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> r :call RenameItemUnderCursor()<CR>
+    "   autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
+    " augroup END
   " }}}
-  " EASY ALIGN {{{
-    " Start interactive EasyAlign in visual mode (e.g. vipga)
-    xmap ga <Plug>(EasyAlign)
+  " ENDWISE {{{
+    " See function: SMART ENTER FOR AUTOCOMPLETION
+    let g:endwise_no_mappings = 1
+  " }}}
+  " FAR {{{
+    let g:far#source            = 'rgnvim'
+    let g:far#window_layout     = 'tab'
+    let g:far#default_file_mask = '**/*.*'
+    let g:far#preview_window_height = 20
 
-    " Start interactive EasyAlign for a motion/text object (e.g. gaip)
-    nmap ga <Plug>(EasyAlign)
+    let g:far#debug = 1
+  " }}}
+  " FERRET {{{
+    nnoremap <silent> <Up> :cprevious<CR>
+    nnoremap <silent> <Down> :cnext<CR>
+    nnoremap <silent> <Left> :cpfile<CR>
+    nnoremap <silent> <Right> :cnfile<CR>
+
+    nnoremap <silent> <S-Up> :lprevious<CR>
+    nnoremap <silent> <S-Down> :lnext<CR>
+    nnoremap <silent> <S-Left> :lpfile<CR>
+    nnoremap <silent> <S-Right> :lnfile<CR>
   " }}}
   " FZF{{{
-    nnoremap <c-t> :Tags<cr>
-    nnoremap <c-g> :RG<cr>
+    nnoremap <silent><c-t> :Tags<cr>
+    nnoremap <silent><c-g> :RG<cr>
     nnoremap <silent><c-f> :Files<CR>
-    nnoremap <c-b> :Buffers<cr>
+    nnoremap <silent><c-b> :Buffers<cr>
 
-    let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git}"'
+    autocmd! FileType fzf set laststatus=0 noshowmode noruler
+  \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+
+    let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
 
     command! -bang -nargs=? -complete=dir Files
     \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--margin=1,2']}), <bang>0)
@@ -875,10 +993,6 @@
   " Slim {{{
     autocmd BufNewFile,BufRead *.slim setlocal filetype=slim
   " }}}
-" }}}
-
-" Snippits {{{
-  inoremap ;do do<space>\|\|<cr>end<up><up><c-o>$<left>
 " }}}
 
 " Colorscheme & Highlights {{{
