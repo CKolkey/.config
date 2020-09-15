@@ -35,7 +35,7 @@ If you already store your configuration/dotfiles in a Git repository, on a new s
 
 Prior to the installation make sure you have committed the alias to your .bashrc or .zsh:
 ```bash
-alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
+alias config='/usr/bin/git --git-dir=$HOME/.config.git/ --work-tree=$HOME'
 ```
 
 And that your source repository ignores the folder where you'll clone it, so that you don't create weird recursion problems:
