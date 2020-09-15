@@ -1,0 +1,1 @@
+/Users/Cameron/.config/zsh/zshrc
