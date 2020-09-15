@@ -1,7 +1,7 @@
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # SSH Agent is linux only
   keychain id_rsa
-  . ~/.keychain/$(uname -n)-sh)
+  . ~/.keychain/$(uname -n)-sh
 
   # Launch TMUX if it's not active, only on linux box
   [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
