@@ -1,14 +1,13 @@
-if [[ $OSTYPE == "linux-gnu"* ]]; then
-  # SSH Agent
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  # SSH Agent is linux only
   keychain id_rsa
   . ~/.keychain/$(uname -n)-sh)
-fi
 
-  # Launch TMUX if it's not active
+  # Launch TMUX if it's not active, only on linux box
   [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
   # Close connection after TMUX terminates
   [ -z "$TMUX" ] && clear && exit
-
+fi
 
 # Oh My ZSH Stuff
 COMPLETION_WAITING_DOTS="true"
@@ -92,6 +91,9 @@ if [ $(date +'%j') != $updated_at ]; then
 else
   compinit -C -i
 fi
+
+zmodload -i zsh/complist
+kitty + complete setup zsh | source /dev/stdin
 
 # FZF
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
