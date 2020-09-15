@@ -656,8 +656,10 @@
     nnoremap <silent><c-f> :Files<CR>
     nnoremap <silent><c-b> :Buffers<cr>
 
-    autocmd! FileType fzf set laststatus=0 noshowmode noruler
-  \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+    augroup fzfautocommands
+      autocmd!
+      autocmd FileType fzf setlocal laststatus=0 noshowmode noruler
+    augroup END
 
     let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
 
