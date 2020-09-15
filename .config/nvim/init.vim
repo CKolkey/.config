@@ -1,4 +1,5 @@
 " Plugins {{{
+
   " Install vim-plug
   if empty(glob('~/.config/nvim/autoload/plug.vim'))
       silent !curl -fLo ~/.config/nvim/autoload/plug.vim --create-dirs
@@ -36,7 +37,6 @@
 
     Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
     Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
-    Plug 'majutsushi/tagbar'                                      " Sidebar for showing tags in file
 
     Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
     Plug 'junegunn/fzf.vim'
@@ -859,9 +859,7 @@
     let g:gitgutter_sign_removed_first_line = '▔'
     let g:gitgutter_sign_removed           = '▁'
   " }}}
-  " GUTENTAGS & TAGBAR{{{
-    " Tagbar Plugin Binding
-    noremap <leader>tb :TagbarToggle<CR>
+  " GUTENTAGS {{{
 
     " enable gtags module
     let g:gutentags_modules = ['ctags', 'gtags_cscope']
