@@ -58,6 +58,7 @@ call plug#begin()
   Plug 'nvim-lua/completion-nvim'
   Plug 'steelsojka/completion-buffers'
   Plug 'nvim-treesitter/completion-treesitter'
+  Plug 'nvim-treesitter/playground'
 call plug#end()
 " }}}
 
@@ -208,7 +209,7 @@ call plug#end()
 " }}}
 " ENDWISE {{{
   " See function: SMART ENTER FOR AUTOCOMPLETION
-  let g:endwise_no_mappings = 1
+  " let g:endwise_no_mappings = 1
 " }}}
 " FERRET {{{
   nnoremap <silent> <Up> :cprevious<CR>
@@ -250,17 +251,17 @@ call plug#end()
   let g:fzf_colors = {
         \ 'fg':      ['fg', 'Normal'],
         \ 'bg':      ['bg', 'Normal'],
-        \ 'hl':      ['fg', 'Keyword'],
-        \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'PreProc'],
+        \ 'hl':      ['fg', 'Boolean'],
+        \ 'fg+':     ['fg', 'PreProc'],
         \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-        \ 'hl+':     ['fg', 'Keyword'],
-        \ 'info':    ['fg', 'Statement'],
+        \ 'hl+':     ['fg', 'Boolean'],
+        \ 'info':    ['fg', 'Comment'],
         \ 'border':  ['fg', 'Comment'],
-        \ 'prompt':  ['fg', 'Conditional'],
-        \ 'pointer': ['fg', 'Statement'],
-        \ 'marker':  ['fg', 'Keyword'],
+        \ 'prompt':  ['fg', 'Function'],
+        \ 'pointer': ['fg', 'Boolean'],
+        \ 'marker':  ['fg', 'Symbol'],
         \ 'spinner': ['fg', 'Label'],
-        \ 'header':  ['fg', 'Keyword'] }
+        \ 'header':  ['fg', 'Symbol'] }
 
   command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 
@@ -368,10 +369,12 @@ call plug#end()
   let g:matchup_matchparen_deferred  = 1
   let g:matchup_matchparen_offscreen = {}
 "}}}
-  " NVIM COMPLETION {{{
+  " NVIM COMPLETION & DIAGNOSTIC {{{
     " Use <Tab> and <S-Tab> to navigate through popup menu
-    inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
-    inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+    inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+    inoremap <expr> <s-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+
+    let g:completion_confirm_key = ""
 
     " Set completeopt to have a better completion experience
     set completeopt=menuone,noinsert,noselect
@@ -382,24 +385,18 @@ call plug#end()
     augroup loadLSPFeatures
       autocmd!
       autocmd BufEnter * lua require'completion'.on_attach()
+      autocmd BufEnter * lua require'diagnostic'.on_attach()
     augroup end
 
+    let g:completion_chain_complete_list = [
+      \ {'complete_items': ['lsp', 'buffers', 'ts']},
+      \ {'mode': '<c-p>'},
+      \ {'mode': '<c-n>'}
+    \ ]
+
 lua << EOF
-local on_attach_vim = function(client)
-  require'completion'.on_attach(client)
-  require'diagnostic'.on_attach(client)
-end
-
-require'nvim_lsp'.tsserver.setup{on_attach=on_attach_vim}
-require'nvim_lsp'.solargraph.setup{on_attach=on_attach_vim}
-
-completion_chain_complete_list = {
-  { complete_items = { 'lsp' } },
-  { complete_items = { 'buffers' } },
-  { complete_items = { 'treesitter' } },
-  { mode = { '<c-p>' } },
-  { mode = { '<c-n>' } }
-}
+require'nvim_lsp'.tsserver.setup{}
+require'nvim_lsp'.solargraph.setup{}
 EOF
   " }}}
   " NVIM TREESITTER {{{
@@ -409,7 +406,7 @@ lua <<EOF
     highlight = {
       enable = true,
       custom_captures = {
-        ["variable.builtin"] = "PreProc"
+        ["variable.builtin"] = "PreProc",
       }
     },
     refactor = {
@@ -421,6 +418,12 @@ lua <<EOF
         },
       },
     },
+    playground = {
+      enable = true,
+      disable = {},
+      updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+      persist_queries = false -- Whether the query persists across vim sessions
+    }
   }
 EOF
   " }}}
@@ -527,7 +530,7 @@ EOF
   augroup autosavebuffer
     autocmd!
     " autocmd InsertLeave * nested silent! update
-    autocmd InsertLeave * nested call timer_start(50, { -> execute("silent! update") })
+    autocmd InsertLeave * nested call timer_start(100, { -> execute("silent! update") })
   augroup end
 " }}}
   " RELATIVE LINE NUMBERS IN NORMAL MODE, ABSOLUTE NUMBERS IN INSERT MODE {{{
@@ -724,7 +727,8 @@ EOF
   " }}}
   " SMART ENTER FOR AUTOCOMPLETION {{{
     " complete_info()["selected"] is '-1' when nothing is selected
-    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] == "-1" ?  "\<CR>\<Plug>DiscretionaryEnd" :  "\<C-Y>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
+    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] != "-1" ?
+          \ "\<Plug>(completion_confirm_completion)" : "\<CR>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
   "}}}
 " }}}
 
@@ -877,17 +881,12 @@ EOF
       let s:red         = { "gui": "#E06C75", "cterm": "204", "cterm16": "1"  }
       let s:dark_yellow = { "gui": "#FFCB6B", "cterm": "173", "cterm16": "11" }
 
-      autocmd ColorScheme * call onedark#set_highlight("Constant",            { "fg": s:yellow      })
-      " autocmd ColorScheme * call onedark#set_highlight("Statement",           { "fg": s:blue        })
-      autocmd ColorScheme * call onedark#set_highlight("Macro",               { "fg": s:blue        })
-      autocmd ColorScheme * call onedark#set_highlight("CursorLineNr",        { "fg": s:yellow      })
-      autocmd ColorScheme * call onedark#set_highlight("rubyConstant",        { "fg": s:dark_yellow })
-      autocmd ColorScheme * call onedark#set_highlight("rubySymbolDelimiter", { "fg": s:red         })
-      autocmd ColorScheme * call onedark#set_highlight("rubyKeywordAsMethod", { "fg": s:blue        })
-      autocmd ColorScheme * call onedark#set_highlight("rubySymbol",          { "fg": s:yellow      })
-      autocmd ColorScheme * call onedark#set_highlight("rubyPseudoVariable",  { "fg": s:red         })
-      autocmd ColorScheme * call onedark#set_highlight("rubyBoolean",         { "fg": s:red         })
-      autocmd ColorScheme * call onedark#set_highlight("rubyInteger",         { "fg": s:red         })
+      autocmd ColorScheme * call onedark#set_highlight("Constant",     { "fg": s:dark_yellow })
+      autocmd ColorScheme * call onedark#set_highlight("keyword",      { "fg": s:purple      })
+      autocmd ColorScheme * call onedark#set_highlight("number",       { "fg": s:red         })
+      autocmd ColorScheme * call onedark#set_highlight("boolean",      { "fg": s:red         })
+      autocmd ColorScheme * call onedark#set_highlight("label",        { "fg": s:red         })
+      autocmd ColorScheme * call onedark#set_highlight("CursorLineNr", { "fg": s:yellow      })
     augroup END
   endif
 
