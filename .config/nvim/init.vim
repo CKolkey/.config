@@ -16,7 +16,7 @@ call plug#begin()
   Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
   Plug 'joshdick/onedark.vim'                                   " Colorscheme
 
-  Plug 'wincent/ferret'                                         " Find and Replace across files
+  Plug 'wincent/ferret'                                         " Enhanced Multi-file search and replace
   Plug 'wincent/scalpel'                                        " Replace word under Cursor in buffer/selection. Activate with <leader-e>
   Plug 'tommcdo/vim-lion'                                       " Align characters across lines
   Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
@@ -36,10 +36,11 @@ call plug#begin()
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
   Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
   Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
-  Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
-  Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
+  " Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
+  " Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
   Plug 'junegunn/fzf.vim'
+  Plug 'liuchengxu/vim-clap', { 'do': ':Clap install-binary' }  " FZF Alternative
   Plug 'vim-airline/vim-airline'                                " Status Bar and Tab Bar
   Plug 'vim-airline/vim-airline-themes'
   Plug 'tpope/vim-rails'                                        " Rails Specific Commands
@@ -50,15 +51,16 @@ call plug#begin()
   Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
   Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
-  " neovim 0.5
-  Plug 'nvim-treesitter/nvim-treesitter'
-  Plug 'nvim-treesitter/nvim-treesitter-refactor'
-  Plug 'neovim/nvim-lspconfig'
-  Plug 'nvim-lua/diagnostic-nvim'
-  Plug 'nvim-lua/completion-nvim'
-  Plug 'steelsojka/completion-buffers'
-  Plug 'nvim-treesitter/completion-treesitter'
-  Plug 'nvim-treesitter/playground'
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
+  Plug 'Shougo/deoplete-lsp'
+  Plug 'Shougo/neco-syntax'
+
+  if has('nvim-0.5')
+    Plug 'nvim-treesitter/nvim-treesitter'
+    Plug 'nvim-treesitter/nvim-treesitter-refactor'
+    Plug 'neovim/nvim-lspconfig'
+    Plug 'ojroques/nvim-lspfuzzy', { 'branch': 'main' }
+  endif
 call plug#end()
 " }}}
 
@@ -68,7 +70,7 @@ call plug#end()
   let g:airline#extensions#tabline#enabled      = 1
   let g:airline#extensions#tabline#formatter    = 'unique_tail_improved'
   let g:airline#extensions#bufferline#enabled   = 1
-  let g:airline#extensions#gutentags#enabled    = 1
+  " let g:airline#extensions#gutentags#enabled    = 1
   let g:airline_theme                           = 'deus'
   let g:airline_powerline_fonts                 = 1
   let g:airline_left_sep                        = '█'
@@ -80,31 +82,25 @@ call plug#end()
 "}}}
 " ALE{{{
   " from: https://github.com/fohte/rubocop-daemon
-  let g:ale_ruby_rubocop_executable = 'rubocop-daemon-wrapper'
-  let g:ale_ruby_reek_executable    = 'reek'
+  let g:ale_ruby_rubocop_executable       = 'rubocop-daemon-wrapper'
+  let g:ale_ruby_rubocop_auto_correct_all = 1
 
   let g:ale_linters = {
     \   'javascript': ['eslint'],
-    \   'ruby':       ['rubocop', 'reek', 'solargraph'],
+    \   'ruby':       ['rubocop'],
     \}
 
   let g:ale_fixers = {
-    \   '*':          ['remove_trailing_lines', 'trim_whitespace'],
     \   'ruby':       ['rubocop'],
-    \   'javascript': ['prettier', 'eslint'],
-    \   'css' :       ['prettier'],
-    \   'html' :      ['prettier'],
-    \   'markdown' :  ['prettier'],
-    \   'yaml':       ['prettier'],
-    \   'json':       ['prettier'],
+    \   'javascript': ['eslint'],
     \}
 
   let g:ale_fix_on_save        = 1
-  let g:ale_fix_on_save_ignore = { 'javascript': ['prettier'] }
   let g:ale_linters_explicit   = 1
   let g:ale_sign_column_always = 1
   let g:ale_sign_error         = '!!'
   let g:ale_sign_warning       = '~>'
+  let g:ale_sign_highlight_linenrs = 1
 "}}}
 " ANY-JUMP {{{
   let g:any_jump_window_width_ratio  = 0.7
@@ -126,10 +122,43 @@ call plug#end()
     autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
   augroup END
 " }}}
+  " CLAP {{{
+    " nnoremap <silent><c-f> :Clap files! ++finder=rg --files --hidden -g '!.git/'<cr>
+
+    augroup ClapAutocmd
+      autocmd!
+      autocmd User ClapOnEnter call InvertBackground()
+      autocmd User ClapOnExit  call ResetBackground()
+    augroup END
+
+    let g:clap_layout                   = { 'relative': 'editor', 'row': '10%' }
+    let g:clap_open_action              = { 'ctrl-t': 'tab split', 'ctrl-s': 'split', 'ctrl-v': 'vsplit' }
+    let g:clap_search_box_border_style  = 'nil'
+    let g:clap_insert_mode_only         = v:true
+    let g:clap_default_external_filer   = 'fzf'
+    let g:clap_fuzzy_match_hl_groups    = [ [ 118, '#C3E88D' ] ]
+    let g:clap_enable_background_shadow = v:false
+    let g:clap_provider_grep_delay      = 10
+
+    let g:clap_theme_mid_bg = '#181a1b'
+    let g:clap_theme_top_bg = '#2c323c'
+    let g:clap_theme_bot_bg = '#383f4d'
+    let g:clap_theme = {
+          \ 'input':                  { 'guibg': g:clap_theme_top_bg },
+          \ 'spinner':                { 'guibg': g:clap_theme_top_bg, 'guifg': '#707d99', 'gui': 'italic' },
+          \ 'search_text':            { 'guibg': g:clap_theme_top_bg, 'guifg': '#ccdbff', 'gui': 'bold' },
+          \ 'display':                { 'guibg': g:clap_theme_mid_bg },
+          \ 'selected':               { 'guibg': g:clap_theme_mid_bg, 'gui': 'bold' },
+          \ 'selected_sign':          { 'guibg': g:clap_theme_mid_bg, 'guifg': '#E06C75', 'gui': 'bold' },
+          \ 'preview':                { 'guibg': g:clap_theme_bot_bg },
+          \ 'current_selection':      { 'guibg': g:clap_theme_bot_bg, 'gui': 'bold' },
+          \ 'current_selection_sign': { 'guibg': g:clap_theme_bot_bg, 'guifg': '#E06C75', 'gui': 'bold' },
+          \ }
+  " }}}
 " DEFX Filetree browser {{{
   nnoremap <silent>- :Defx<CR>
   call defx#custom#option('_', {
-    \ 'columns': 'space:indent:icons:filename:type',
+    \ 'columns': 'space:indent:mark:icons:filename:type',
     \ 'winwidth': 50,
     \ 'split': 'vertical',
     \ 'direction': 'topleft',
@@ -137,9 +166,11 @@ call plug#end()
     \ 'resume': 1,
     \ 'toggle': 1,
     \ 'root_marker': ' ',
-  \})
+    \ })
 
-  call defx#custom#column('filename', { 'root_marker_highlight': 'Ignore' })
+  call defx#custom#column('filename', {
+    \ 'root_marker_highlight': 'Ignore',
+    \ })
 
   let g:defx_icons_directory_symlink_icon  = '>'
   let g:defx_icons_directory_icon          = '+'
@@ -159,6 +190,12 @@ call plug#end()
     autocmd BufWritePost * call defx#redraw() " Redraw on file change
     autocmd FileType defx call s:defx_init()  " Load Settings
   augroup END
+
+  function! g:AddToQuickFix(context) abort
+    call setqflist(map(copy(a:context.targets), '{ "filename": v:val }'))
+    copen
+    cc
+  endfunction
 
   function! s:defx_init()
     setl nonumber
@@ -199,80 +236,104 @@ call plug#end()
       \ defx#do_action('remove')
     nnoremap <silent><nowait><buffer><expr> r
       \ defx#do_action('rename')
-    nnoremap <silent><nowait><buffer><expr> <C-r>
-      \ defx#do_action('redraw')
-    nnoremap <silent><nowait><buffer><expr> >
-      \ defx#do_action('resize', defx#get_context().winwidth + 10)
-    nnoremap <silent><nowait><buffer><expr> <
-      \ defx#do_action('resize', defx#get_context().winwidth - 10)
+    nnoremap <silent><buffer><expr> <TAB>
+      \ defx#do_action('toggle_select') . 'j'
+    nnoremap <silent><buffer><expr> <c-q>
+      \ defx#do_action('multi', [['call', 'AddToQuickFix'], 'quit'])
   endfunction
 " }}}
+  " DEOPLETE{{{
+    " Set completeopt to have a better completion experience
+    set completeopt=menuone,noinsert,noselect
+
+    " Remaps tab and shift-tab to select item in Pop up menu
+    inoremap <expr>  <tab> pumvisible() ? "\<C-n>" : "\<tab>"
+    inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+    "<TAB>: completion.
+    inoremap <silent><expr> <TAB>
+          \ pumvisible() ? "\<C-n>" :
+          \ <SID>check_back_space() ? "\<TAB>" :
+          \ deoplete#manual_complete()
+
+    function! s:check_back_space() abort
+      let col = col('.') - 1
+      return !col || getline('.')[col - 1]  =~ '\s'
+    endfunction
+
+    let g:deoplete#enable_at_startup = 1
+    call deoplete#custom#option({
+      \ 'num_processes' : -1,
+      \ 'sources'       : {
+        \ '_': ['tag', 'buffer', 'file', 'syntax'],
+        \ 'ruby': ['lsp', 'tags', 'buffer', 'syntax', 'file'],
+        \ 'javascript': ['lsp', 'tags', 'buffer', 'syntax', 'file'],
+        \ }
+      \ })
+    call deoplete#custom#option('auto_complete_delay', 0)
+    call deoplete#custom#option('smart_case', v:true)
+    call deoplete#custom#option('min_pattern_length', 1)
+  " }}}
 " ENDWISE {{{
   " See function: SMART ENTER FOR AUTOCOMPLETION
   " let g:endwise_no_mappings = 1
 " }}}
-" FERRET {{{
-  nnoremap <silent> <Up> :cprevious<CR>
-  nnoremap <silent> <Down> :cnext<CR>
-  nnoremap <silent> <Left> :cpfile<CR>
-  nnoremap <silent> <Right> :cnfile<CR>
-
-  nnoremap <silent> <S-Up> :lprevious<CR>
-  nnoremap <silent> <S-Down> :lnext<CR>
-  nnoremap <silent> <S-Left> :lpfile<CR>
-  nnoremap <silent> <S-Right> :lnfile<CR>
-" }}}
 " FZF{{{
+  let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
+
   nnoremap <silent><c-g> :RG<cr>
   nnoremap <silent><c-f> :Files<CR>
-  nnoremap <silent><c-b> :Buffers<cr>
-
-  let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
 
   command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--margin=1,2']}), <bang>0)
 
-  function! s:build_quickfix_list(lines)
-    call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
-    copen
-    cc
-  endfunction
+  let g:fzf_history_dir = '~/.cache/nvim/fzf-history'
+  let g:fzf_layout = { 'window': { 'width': 1, 'height': 1, 'border': 'top' } }
+
+  augroup FzfAutocmd
+    autocmd!
+    autocmd FileType fzf call InvertBackground()
+      \| autocmd BufLeave <buffer> call ResetBackground()
+  augroup END
 
   let g:fzf_action = {
         \ 'ctrl-s': 'split',
         \ 'ctrl-v': 'vsplit',
         \ 'ctrl-t': 'tab split',
-        \ 'ctrl-q': function('s:build_quickfix_list')
         \ }
-
-  let g:fzf_history_dir = '~/.cache/nvim/fzf-history'
-  let g:fzf_layout = { 'window': 'call CreateCenteredFloatingWindow()' }
-
-  let g:fzf_colors = {
-        \ 'fg':      ['fg', 'Normal'],
-        \ 'bg':      ['bg', 'Normal'],
-        \ 'hl':      ['fg', 'Boolean'],
-        \ 'fg+':     ['fg', 'PreProc'],
-        \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-        \ 'hl+':     ['fg', 'Boolean'],
-        \ 'info':    ['fg', 'Comment'],
-        \ 'border':  ['fg', 'Comment'],
-        \ 'prompt':  ['fg', 'Function'],
-        \ 'pointer': ['fg', 'Boolean'],
-        \ 'marker':  ['fg', 'Symbol'],
-        \ 'spinner': ['fg', 'Label'],
-        \ 'header':  ['fg', 'Symbol'] }
-
-  command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 
   function! RipgrepFzf(query, fullscreen)
     let command_fmt     = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
     let initial_command = printf(command_fmt, shellescape(a:query))
     let reload_command  = printf(command_fmt, '{q}')
-    let spec            = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command, '--layout=reverse', '--margin=1,2']}
+    let spec            = {
+      \ 'options': [
+        \ '--phony',
+        \ '--query',
+        \ a:query,
+        \ '--bind',
+        \ 'change:reload:'.reload_command,
+        \ '--layout=reverse',
+        \ '--margin=0,1',
+        \ '--preview-window=down:50%',
+        \ '--color=bg+:#2C323C,border:#5C6370,spinner:#E06C75,hl:#E06C75,fg:#FCFCFC,info:#5C6370:italic,pointer:#E06C75,fg+:#FFE082:bold,prompt:#82AAFF,hl+:#E06C75'
+      \ ]}
+
     call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
   endfunction
+
+  command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 "}}}
+  " FZF LSP {{{
+lua << EOF
+require('lspfuzzy').setup {
+  methods = 'all',        -- either 'all' or a list of LSP methods (see below)
+  fzf_options = {},       -- options passed to FZF
+  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
+  fzf_trim = true,        -- trim FZF entries
+}
+EOF
+  " }}}
 " GITGUTTER {{{
   let g:gitgutter_sign_added             = '▌'
   let g:gitgutter_sign_modified           = '▌'
@@ -287,11 +348,8 @@ call plug#end()
   " config project root markers.
   let g:gutentags_project_root = ['.root', '.git']
 
-  " generate datebases in cache directory, prevent gtags files polluting my project
+  " generate datebases in cache directory, prevent gtags files polluting project
   let g:gutentags_cache_dir = expand('~/.cache/tags')
-
-  " change focus to quickfix window after search (optional).
-  let g:gutentags_plus_switch              = 1
 
   let g:gutentags_generate_on_new          = 1
   let g:gutentags_generate_on_missing      = 1
@@ -369,36 +427,6 @@ call plug#end()
   let g:matchup_matchparen_deferred  = 1
   let g:matchup_matchparen_offscreen = {}
 "}}}
-  " NVIM COMPLETION & DIAGNOSTIC {{{
-    " Use <Tab> and <S-Tab> to navigate through popup menu
-    inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-    inoremap <expr> <s-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-
-    let g:completion_confirm_key = ""
-
-    " Set completeopt to have a better completion experience
-    set completeopt=menuone,noinsert,noselect
-
-    " Avoid showing message extra message when using completion
-    set shortmess+=c
-
-    augroup loadLSPFeatures
-      autocmd!
-      autocmd BufEnter * lua require'completion'.on_attach()
-      autocmd BufEnter * lua require'diagnostic'.on_attach()
-    augroup end
-
-    let g:completion_chain_complete_list = [
-      \ {'complete_items': ['lsp', 'buffers', 'ts']},
-      \ {'mode': '<c-p>'},
-      \ {'mode': '<c-n>'}
-    \ ]
-
-lua << EOF
-require'nvim_lsp'.tsserver.setup{}
-require'nvim_lsp'.solargraph.setup{}
-EOF
-  " }}}
   " NVIM TREESITTER {{{
 lua <<EOF
   require'nvim-treesitter.configs'.setup {
@@ -418,23 +446,184 @@ lua <<EOF
         },
       },
     },
-    playground = {
-      enable = true,
-      disable = {},
-      updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
-      persist_queries = false -- Whether the query persists across vim sessions
-    }
   }
 EOF
   " }}}
   " NVIM LSP {{{
 lua <<EOF
-require'nvim_lsp'.solargraph.setup {
-  commandPath = "~/.rbenv/shims/solargraph",
+vim.lsp.set_log_level(0)
+
+local lspconfig = require "lspconfig"
+
+local map = function(mode, key, result, noremap)
+    if noremap == nil then
+        noremap = true
+    end
+    vim.api.nvim_buf_set_keymap(0, mode, key, result, {noremap = noremap, silent = true})
+end
+
+-- vim.g.completion_enable_auto_popup      = false
+-- vim.g.completion_enable_snippet         = "UltiSnips"
+-- vim.g.completion_matching_strategy_list = {"exact", "substring", "fuzzy", "all"}
+-- vim.g.completion_auto_change_source     = 1
+-- vim.g.completion_matching_smart_case    = 1
+-- vim.g.completion_chain_complete_list    = {
+--     default = {
+--         {complete_items = {"lsp"}},
+--         {complete_items = {"snippet"}},
+--         {complete_items = {"path"}},
+--         {mode = "<c-n>"},
+--         {mode = "dict"}
+--     }
+-- }
+
+-- vim.g.completion_enable_auto_paren = 1
+-- vim.g.completion_customize_lsp_label = {
+--     Function  = " [function]",
+--     Method    = " [method]",
+--     Reference = " [refrence]",
+--     Enum      = " [enum]",
+--     Field     = "ﰠ [field]",
+--     Keyword   = " [key]",
+--     Variable  = " [variable]",
+--     Folder    = " [folder]",
+--     Snippet   = " [snippet]",
+--     Operator  = " [operator]",
+--     Module    = " [module]",
+--     Text      = "ﮜz[text]",
+--     Class     = " [class]",
+--     Interface = " [interface]"
+-- }
+
+vim.lsp.handlers["textDocument/formatting"] = function(err, _, result, _, bufnr)
+    if err ~= nil or result == nil then
+        return
+    end
+    if not vim.api.nvim_buf_get_option(bufnr, "modified") then
+        local view = vim.fn.winsaveview()
+        vim.lsp.util.apply_text_edits(result, bufnr)
+        vim.fn.winrestview(view)
+        if bufnr == vim.api.nvim_get_current_buf() then
+            vim.cmd("noautocmd :update")
+            vim.cmd("GitGutter")
+        end
+    end
+end
+
+-- vim.lsp.handlers["textDocument/publishDiagnostics"] = function(...)
+--     vim.lsp.with(
+--         vim.lsp.diagnostic.on_publish_diagnostics,
+--         {
+--             underline = true,
+--             update_in_insert = false
+--         }
+--     )(...)
+--     pcall(vim.lsp.diagnostic.set_loclist, {open_loclist = false})
+-- end
+
+-- _G.formatting = function()
+--     if not vim.g[string.format("format_disabled_%s", vim.bo.filetype)] then
+--         vim.lsp.buf.formatting(vim.g[string.format("format_options_%s", vim.bo.filetype)] or {})
+--     end
+-- end
+
+local on_attach = function(client)
+    -- Handle formatting with EFM
+    client.resolved_capabilities.document_formatting = false
+
+    if client.resolved_capabilities.goto_definition then
+        map("n", "<C-]>", "<cmd>lua vim.lsp.buf.definition()<CR>")
+    end
+
+    -- if client.resolved_capabilities.completion then
+    --     require "completion".on_attach(client)
+    --     map("i", "<c-n>", "<Plug>(completion_trigger)", false)
+    --     map("i", "<c-j>", "<Plug>(completion_next_source)", false)
+    --     map("i", "<c-k>", "<Plug>(completion_prev_source)", false)
+    -- end
+
+    if client.resolved_capabilities.document_highlight then
+      vim.api.nvim_command [[autocmd CursorHold  <buffer> lua vim.lsp.buf.document_highlight()]]
+      vim.api.nvim_command [[autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()]]
+      vim.api.nvim_command [[autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()]]
+    end
+
+    -- if client.resolved_capabilities.hover then
+    --     map("n", "<CR>", "<cmd>lua vim.lsp.buf.hover()<CR>")
+    -- end
+
+    if client.resolved_capabilities.find_references then
+        map("n", "<Leader>*", ":call lists#ChangeActiveList('Quickfix')<CR>:lua vim.lsp.buf.references()<CR>")
+    end
+
+    if client.resolved_capabilities.rename then
+        map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>")
+    end
+end
+
+local on_attach_efm = function(client)
+    vim.cmd [[augroup Format]]
+    vim.cmd [[autocmd! * <buffer>]]
+    vim.cmd [[autocmd BufWritePost <buffer> lua formatting()]]
+    vim.cmd [[augroup END]]
+
+    print("efm attached")
+end
+
+lspconfig.efm.setup {
+    on_attach = on_attach_efm,
+    init_options = { documentFormatting = true },
+    cmd = { "efm-langserver", "-c", "~/.config/efm-langserver/config.yaml" },
+    settings = {
+        rootMarkers = {".git/"},
+        languages = {
+            javascript = {
+              lintCommand        = "eslint -f unix --stdin",
+              lintIgnoreExitCode = true,
+              lintStdin          = true
+            },
+            ruby = {
+              lintCommand          = "rubocop-daemon-wrapper --stdin",
+              lintIgnoreExitCode   = true,
+              lintStdin            = true,
+              formatCommand        = "rubocop-daemon-wrapper --stdin -A",
+              formatIgnoreExitCode = true,
+              formatStdin          = true,
+            }
+        }
+    }
 }
 
-require'nvim_lsp'.tsserver.setup{}
+lspconfig.solargraph.setup { on_attach = on_attach }
 EOF
+
+let g:lsp_diagnostics_enabled = 1
+let g:lsp_signs_enabled       = 1
+let g:lsp_signs_error         = {'text': '!!'}
+let g:lsp_signs_warning       = {'text': '~>'}
+let g:lsp_highlights_enabled  = 1
+"
+" " Do not use virtual text
+let g:lsp_virtual_text_enabled = 0
+"
+" " echo a diagnostic message at cursor position
+let g:lsp_diagnostics_echo_cursor = 0
+"
+" " show diagnostic in floating window
+let g:lsp_diagnostics_float_cursor = 1
+"
+" " whether to enable highlight a symbol and its references
+let g:lsp_highlight_references_enabled = 1
+let g:lsp_preview_max_width = 80
+
+nnoremap <leader>gp :lua vim.lsp.diagnostic.goto_prev()<CR>
+nnoremap <leader>gn :lua vim.lsp.diagnostic.goto_next()<CR>
+nnoremap <leader>de :lua vim.lsp.buf.definition()<CR>
+nnoremap <leader>ff :lua vim.lsp.buf.formatting()<CR>
+nnoremap <leader>ho :lua vim.lsp.buf.hover()<CR>
+nnoremap <leader>rn :lua vim.lsp.buf.rename()<CR>
+nnoremap <leader>f :lua vim.lsp.buf.references()<CR>
+nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   " }}}
 " }}}
 
@@ -523,13 +712,14 @@ EOF
     augroup autoreadfiles
       autocmd!
       autocmd FocusGained,BufEnter * silent! checktime
-      autocmd FileChangedShellPost * echohl WarningMsg | echo "File changed on disk - Buffer reloaded" | echohl None
+      " autocmd FileChangedShellPost * silent redraw!
+      " autocmd FileChangedShellPost * echohl WarningMsg | echo "File changed on disk - Buffer reloaded" | echohl None
     augroup END
 " }}}
 " AUTOSAVE CURRENT BUFFER {{{
   augroup autosavebuffer
     autocmd!
-    " autocmd InsertLeave * nested silent! update
+    " We use a timer to allow endwise to finish it's thing before saving
     autocmd InsertLeave * nested call timer_start(100, { -> execute("silent! update") })
   augroup end
 " }}}
@@ -565,6 +755,23 @@ EOF
       autocmd!
       autocmd BufWinEnter * set fo-=c fo-=r fo-=o " Disable continuation of comments to the next line
       autocmd BufWinEnter * set formatoptions+=j  " Remove a comment leader when joining lines
+    augroup END
+  " }}}
+  " QUICKFIX {{{
+    augroup quickfix
+      autocmd!
+      " Delete item from Quickfix
+      autocmd BufWinEnter quickfix nnoremap <buffer> <silent> dd
+            \ <Cmd>call setqflist(filter(getqflist(), {idx -> idx != line('.') - 1}), 'r') <Bar> cc<CR>
+      " Resize QF buffer on open, and focus back up top
+      autocmd BufWinEnter quickfix call timer_start(100, { -> execute('cclose|' . min([10, len(getqflist())]) . 'cwindow | wincmd w') })
+    augroup END
+  " }}}
+  " REMOVE TRAILING WHITESPACE && EMPTY LINES ON SAVE {{{
+    augroup stripWhitespaceOnSave
+      autocmd!
+      autocmd BufWritePre * :call TrimWhitespace()
+      autocmd BufWritePre * :call TrimEndLines()
     augroup END
   " }}}
 " }}}
@@ -642,8 +849,6 @@ EOF
         let g:terminal_drawer.win_id = win_getid()
 
         tnoremap <buffer><Esc> <C-\><C-n>
-        nnoremap <buffer><silent><Esc> :call ToggleTerminalDrawer()<CR>
-        nnoremap <buffer><silent> q :call ToggleTerminalDrawer()<CR>
       endif
     endfunction
   " }}}
@@ -664,28 +869,9 @@ EOF
       let left   = (&columns - width) / 2
       let opts   = { 'relative': 'editor', 'row': top, 'col': left, 'width': width, 'height': height, 'style': 'minimal' }
 
-      let top_line    = "╭" . repeat("─", width - 2) . "╮"
-      let mid_line    = "│" . repeat(" ", width - 2) . "│"
-      let bot_line    = "╰" . repeat("─", width - 2) . "╯"
-      let lines  = [top_line] + repeat([mid_line], height - 2) + [bot_line]
-      let s:buf  = nvim_create_buf(v:false, v:true)
-
-      call nvim_buf_set_lines(s:buf, 0, -1, v:true, lines)
-      call nvim_open_win(s:buf, v:true, opts)
-      set winhl=Normal:Floating
+      call nvim_open_win(nvim_create_buf(v:false, v:true), v:true, opts)
       call InvertBackground()
-
-      call nvim_open_win(nvim_create_buf(v:false, v:true), v:true, CreatePadding(opts))
-      autocmd BufWipeout <buffer> exe 'bwipeout '.s:buf
       autocmd BufWipeout <buffer> call ResetBackground()
-    endfunction
-
-    function! CreatePadding(opts)
-      let a:opts.row    += 1
-      let a:opts.height -= 2
-      let a:opts.col    += 2
-      let a:opts.width  -= 4
-      return a:opts
     endfunction
   " }}}
   " TOGGLE TERMINAL && ON TERMINAL EXIT {{{
@@ -727,9 +913,55 @@ EOF
   " }}}
   " SMART ENTER FOR AUTOCOMPLETION {{{
     " complete_info()["selected"] is '-1' when nothing is selected
-    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] != "-1" ?
-          \ "\<Plug>(completion_confirm_completion)" : "\<CR>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
+    " imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] != "-1" ?
+    "       \ "\<Plug>(completion_confirm_completion)" : "\<CR>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
+    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] == "-1" ?  "\<CR>\<Plug>DiscretionaryEnd" :  "\<C-Y>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
   "}}}
+  " CHECK BACK SPACE {{{
+    " Used to trigger auto-completion
+    function! s:check_back_space() abort
+        let col = col('.') - 1
+        return !col || getline('.')[col - 1]  =~ '\s'
+    endfunction
+  " }}}
+  " REMOVE TRAILING WHITESPACE {{{
+    function! TrimWhitespace()
+      let l:save = winsaveview()
+      keeppatterns %s/\s\+$//e
+      call winrestview(l:save)
+    endfunction
+  " }}}
+  " REMOVE EMPTY LINES AT EOF {{{
+    function! TrimEndLines()
+      let save_cursor = getpos(".")
+      silent! %s#\($\n\s*\)\+\%$##
+      call setpos('.', save_cursor)
+    endfunction
+  " }}}
+  " QUICKFIX WRAPAROUND {{{
+    " from https://github.com/romainl/vim-qf/blob/master/autoload/qf/wrap.vim
+    function! QfWrapCommand(direction, prefix)
+        if a:direction == "up"
+            try
+                execute a:prefix . "previous"
+            catch /^Vim\%((\a\+)\)\=:E553/
+                execute a:prefix . "last"
+            catch /^Vim\%((\a\+)\)\=:E\%(325\|776\|42\):/
+            endtry
+        else
+            try
+                execute a:prefix . "next"
+            catch /^Vim\%((\a\+)\)\=:E553/
+                execute a:prefix . "first"
+            catch /^Vim\%((\a\+)\)\=:E\%(325\|776\|42\):/
+            endtry
+        endif
+
+        if &foldopen =~ 'quickfix' && foldclosed(line('.')) != -1
+            normal! zv
+        endif
+      endfunction
+  " }}}
 " }}}
 
 " Key Mappings {{{
@@ -740,6 +972,7 @@ EOF
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
   nnoremap <leader>fr :%s///gc<left><left><left><left>
+
   " Open Last Buffer
   nnoremap <Leader><Leader> <C-^>
 
@@ -761,9 +994,9 @@ EOF
   " rebinds semi-colon in normal mode.
   nnoremap ; :
 
-  nnoremap <f7> :bprevious<cr>
-  nnoremap <f8> :tabnext<cr>
-  nnoremap <f9> :bnext<cr>
+  nnoremap <silent><f7> :bprevious<cr>
+  nnoremap <silent><f8> :tabnext<cr>
+  nnoremap <silent><f9> :bnext<cr>
 
   " Change text without putting the text into register,
   nnoremap c "_c
@@ -798,8 +1031,8 @@ EOF
   vmap >>          <Nop>
   vmap <<          <Nop>
 
-  noremap H     g^
-  noremap L     g_
+  noremap H g^
+  noremap L g_
 
   " Close split using c-q, close pane keeping split with c-w
   " plugin: bufkill
@@ -810,8 +1043,8 @@ EOF
   " buffer splits
   nmap <silent><nowait><leader>sh  :leftabove  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
   nmap <silent><nowait><leader>sl  :rightbelow vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><nowait><leader>sj  :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><nowait><leader>sk  :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sk  :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sj  :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
 
   " Enter inserts newline without leaving Normal mode
   nmap <s-cr> O<Esc>
@@ -834,10 +1067,6 @@ EOF
   nnoremap <F20> <c-i>
 
   " " Quicker window movement
-  " nnoremap <C-j> <C-w>j
-  " nnoremap <C-k> <C-w>k
-  " nnoremap <C-h> <C-w>h
-  " nnoremap <C-l> <C-w>l
   tnoremap <C-h> <C-\><C-n><C-w>h
   tnoremap <C-j> <C-\><C-n><C-w>j
   tnoremap <C-k> <C-\><C-n><C-w>k
@@ -850,6 +1079,18 @@ EOF
   inoremap <silent> ˚ <Esc>:m .-2<CR>==gi
   vnoremap <silent> ∆ :m '>+1<CR>gv=gv
   vnoremap <silent> ˚ :m '<-2<CR>gv=gv
+
+  " Quickfix Navigation
+  nnoremap <silent> <Up>    :<C-u> call QfWrapCommand('up', 'c')<CR>
+  nnoremap <silent> <Down>  :<C-u> call QfWrapCommand('down', 'c')<CR>
+  nnoremap <silent> <Left>  :cpfile<CR>
+  nnoremap <silent> <Right> :cnfile<CR>
+
+  " Location List Navigation
+  nnoremap <silent> <S-Up>    :<C-u> call QfWrapCommand('up', 'l')<CR>
+  nnoremap <silent> <S-Down>  :<C-u> call QfWrapCommand('down', 'l')<CR>
+  nnoremap <silent> <S-Left>  :lpfile<CR>
+  nnoremap <silent> <S-Right> :lnfile<CR>
 " }}}
 
 " Language Settings {{{

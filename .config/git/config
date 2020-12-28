@@ -13,6 +13,7 @@
   pager = less -FRSX
   editor = nvim
   excludesfile = /home/ubuntu/.config/git/ignore
+	attributesfile = /home/ubuntu/.gitattributes
 
 [interactive]
   diffFilter = delta --color-only

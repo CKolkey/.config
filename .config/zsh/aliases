@@ -37,6 +37,8 @@ alias os="overmind start"
 alias oc="overmind connect"
 alias or="overmind restart"
 
+alias rbenv-update="git -C "$(rbenv root)"/plugins/ruby-build pull"
+
 # Quickly serve the current directory as HTTP
 alias serve='ruby -run -e httpd . -p 8000'  # Or python -m SimpleHTTPServer :)
 
@@ -48,10 +50,8 @@ alias vf='v $(fzfi)'
 
 alias chip="cd ~/code/Principium/Chipmunk"
 alias nut="cd ~/code/Principium/Nuthouse"
-alias killruby='pkill -f ruby'
+alias aoc="cd ~/code/adventofcode/2020"
 alias rc='bin/rails console'
 alias herokyu="heroku"
-alias production-console="production run rails c"
-alias music="cmus"
 
 # test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
