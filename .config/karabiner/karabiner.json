@@ -93,6 +93,49 @@
                                 "type": "basic"
                             }
                         ]
+                    },
+                    {
+                        "description": "Have F1/F2 act as standard function keys in Kitty",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "net.kovidgoyal.kitty"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "f1"
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "display_brightness_decrement"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "net.kovidgoyal.kitty"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "f2"
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "display_brightness_increment"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
                     }
                 ]
             },
@@ -285,7 +328,7 @@
                         "key_code": "f1"
                     },
                     "to": {
-                        "consumer_key_code": "display_brightness_decrement"
+                        "key_code": "f1"
                     }
                 },
                 {
@@ -293,7 +336,7 @@
                         "key_code": "f2"
                     },
                     "to": {
-                        "consumer_key_code": "display_brightness_increment"
+                        "key_code": "f2"
                     }
                 },
                 {
