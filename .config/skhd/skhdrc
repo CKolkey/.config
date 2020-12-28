@@ -59,6 +59,8 @@ cmd + alt - t : yabai -m window --toggle float
 # Layouts
 cmd + alt - z : yabai -m space --layout bsp
 cmd + alt - x : yabai -m space --layout float
+
+# Toggle between float && bsp
 cmd + alt - space : yabai -m space --layout $(yabai -m query --spaces --space | jq -r 'if .type == "bsp" then "float" else "bsp" end')
 
 # Relative Switching
@@ -72,4 +74,6 @@ alt - up : yabai -m window --toggle sticky
 cmd + alt - o : yabai -m window --toggle topmost
 
 # toggle picture-in-picture
-cmd + alt - p : yabai -m window --toggle pip
+cmd + alt - p : yabai -m window --toggle pip;\
+                yabai -m window --toggle topmost;\
+                yabai -m window --toggle sticky
