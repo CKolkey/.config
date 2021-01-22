@@ -28,7 +28,6 @@ call plug#begin()
   Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
   Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
   Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
-  Plug 'pechorin/any-jump.vim'                                  " IDE like Reference Finding and Method Definitions
   Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
   Plug 'airblade/vim-gitgutter'                                 " Git Line status in left gutter
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
@@ -36,30 +35,28 @@ call plug#begin()
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
   Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
   Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
-  " Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
-  " Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
+  Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
+  Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
   Plug 'junegunn/fzf.vim'
-  Plug 'liuchengxu/vim-clap', { 'do': ':Clap install-binary' }  " FZF Alternative
   Plug 'vim-airline/vim-airline'                                " Status Bar and Tab Bar
   Plug 'vim-airline/vim-airline-themes'
+
   Plug 'tpope/vim-rails'                                        " Rails Specific Commands
   Plug 'tpope/vim-endwise'                                      " Place an 'end' in ruby blocks automatically
   Plug 'tpope/vim-repeat'                                       " Improvements to . repeat
-  Plug 'tpope/vim-fugitive'                                     " Git Integration
   Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
   Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
   Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
   Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
-  Plug 'Shougo/deoplete-lsp'
   Plug 'Shougo/neco-syntax'
 
   if has('nvim-0.5')
+    Plug 'Shougo/deoplete-lsp'
     Plug 'nvim-treesitter/nvim-treesitter'
-    Plug 'nvim-treesitter/nvim-treesitter-refactor'
     Plug 'neovim/nvim-lspconfig'
-    Plug 'ojroques/nvim-lspfuzzy', { 'branch': 'main' }
+    Plug 'RRethy/vim-illuminate'
   endif
 call plug#end()
 " }}}
@@ -82,8 +79,19 @@ call plug#end()
 "}}}
 " ALE{{{
   " from: https://github.com/fohte/rubocop-daemon
+  nnoremap <silent><f8> :ALEFix<cr>
+
+  " nnoremap <silent><f8> :call AleFixResetView()<cr>
+  function! AleFixResetView()
+    let l:save = winsaveview()
+    exec(':ALEFix')
+    call winrestview(l:save)
+  endfunction
+
   let g:ale_ruby_rubocop_executable       = 'rubocop-daemon-wrapper'
   let g:ale_ruby_rubocop_auto_correct_all = 1
+  let g:ale_javascript_eslint_executable  = 'eslint_d'
+  let g:ale_javascript_eslint_use_global  = 1
 
   let g:ale_linters = {
     \   'javascript': ['eslint'],
@@ -91,27 +99,18 @@ call plug#end()
     \}
 
   let g:ale_fixers = {
+    \   '*': ['remove_trailing_lines', 'trim_whitespace'],
     \   'ruby':       ['rubocop'],
     \   'javascript': ['eslint'],
     \}
 
-  let g:ale_fix_on_save        = 1
+  let g:ale_fix_on_save        = 0
   let g:ale_linters_explicit   = 1
   let g:ale_sign_column_always = 1
   let g:ale_sign_error         = '!!'
   let g:ale_sign_warning       = '~>'
   let g:ale_sign_highlight_linenrs = 1
 "}}}
-" ANY-JUMP {{{
-  let g:any_jump_window_width_ratio  = 0.7
-  let g:any_jump_window_height_ratio = 0.6
-  let g:any_jump_window_top_offset   = 4
-
-  augroup anyjump
-    autocmd!
-    autocmd FileType any-jump setlocal nonumber norelativenumber signcolumn=no
-  augroup END
-" }}}
 " CLEVER-F {{{
   let g:clever_f_smart_case        = 1
   let g:clever_f_fix_key_direction = 1
@@ -122,39 +121,6 @@ call plug#end()
     autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
   augroup END
 " }}}
-  " CLAP {{{
-    " nnoremap <silent><c-f> :Clap files! ++finder=rg --files --hidden -g '!.git/'<cr>
-
-    augroup ClapAutocmd
-      autocmd!
-      autocmd User ClapOnEnter call InvertBackground()
-      autocmd User ClapOnExit  call ResetBackground()
-    augroup END
-
-    let g:clap_layout                   = { 'relative': 'editor', 'row': '10%' }
-    let g:clap_open_action              = { 'ctrl-t': 'tab split', 'ctrl-s': 'split', 'ctrl-v': 'vsplit' }
-    let g:clap_search_box_border_style  = 'nil'
-    let g:clap_insert_mode_only         = v:true
-    let g:clap_default_external_filer   = 'fzf'
-    let g:clap_fuzzy_match_hl_groups    = [ [ 118, '#C3E88D' ] ]
-    let g:clap_enable_background_shadow = v:false
-    let g:clap_provider_grep_delay      = 10
-
-    let g:clap_theme_mid_bg = '#181a1b'
-    let g:clap_theme_top_bg = '#2c323c'
-    let g:clap_theme_bot_bg = '#383f4d'
-    let g:clap_theme = {
-          \ 'input':                  { 'guibg': g:clap_theme_top_bg },
-          \ 'spinner':                { 'guibg': g:clap_theme_top_bg, 'guifg': '#707d99', 'gui': 'italic' },
-          \ 'search_text':            { 'guibg': g:clap_theme_top_bg, 'guifg': '#ccdbff', 'gui': 'bold' },
-          \ 'display':                { 'guibg': g:clap_theme_mid_bg },
-          \ 'selected':               { 'guibg': g:clap_theme_mid_bg, 'gui': 'bold' },
-          \ 'selected_sign':          { 'guibg': g:clap_theme_mid_bg, 'guifg': '#E06C75', 'gui': 'bold' },
-          \ 'preview':                { 'guibg': g:clap_theme_bot_bg },
-          \ 'current_selection':      { 'guibg': g:clap_theme_bot_bg, 'gui': 'bold' },
-          \ 'current_selection_sign': { 'guibg': g:clap_theme_bot_bg, 'guifg': '#E06C75', 'gui': 'bold' },
-          \ }
-  " }}}
 " DEFX Filetree browser {{{
   nnoremap <silent>- :Defx<CR>
   call defx#custom#option('_', {
@@ -240,6 +206,11 @@ call plug#end()
       \ defx#do_action('toggle_select') . 'j'
     nnoremap <silent><buffer><expr> <c-q>
       \ defx#do_action('multi', [['call', 'AddToQuickFix'], 'quit'])
+
+    " These get annoying in DEFX
+    nnoremap <silent><buffer><f7> <nop>
+    nnoremap <silent><buffer><f8> <nop>
+    nnoremap <silent><buffer><f9> <nop>
   endfunction
 " }}}
   " DEOPLETE{{{
@@ -247,10 +218,7 @@ call plug#end()
     set completeopt=menuone,noinsert,noselect
 
     " Remaps tab and shift-tab to select item in Pop up menu
-    inoremap <expr>  <tab> pumvisible() ? "\<C-n>" : "\<tab>"
     inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-    "<TAB>: completion.
     inoremap <silent><expr> <TAB>
           \ pumvisible() ? "\<C-n>" :
           \ <SID>check_back_space() ? "\<TAB>" :
@@ -270,13 +238,14 @@ call plug#end()
         \ 'javascript': ['lsp', 'tags', 'buffer', 'syntax', 'file'],
         \ }
       \ })
-    call deoplete#custom#option('auto_complete_delay', 0)
+    call deoplete#custom#option('auto_complete_delay', 100)
     call deoplete#custom#option('smart_case', v:true)
     call deoplete#custom#option('min_pattern_length', 1)
+    call deoplete#custom#source('lsp', 'mark', '')
   " }}}
 " ENDWISE {{{
   " See function: SMART ENTER FOR AUTOCOMPLETION
-  " let g:endwise_no_mappings = 1
+  let g:endwise_no_mappings = v:true
 " }}}
 " FZF{{{
   let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
@@ -324,16 +293,6 @@ call plug#end()
 
   command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 "}}}
-  " FZF LSP {{{
-lua << EOF
-require('lspfuzzy').setup {
-  methods = 'all',        -- either 'all' or a list of LSP methods (see below)
-  fzf_options = {},       -- options passed to FZF
-  fzf_modifier = ':~:.',  -- format FZF entries, see |filename-modifiers|
-  fzf_trim = true,        -- trim FZF entries
-}
-EOF
-  " }}}
 " GITGUTTER {{{
   let g:gitgutter_sign_added             = '▌'
   let g:gitgutter_sign_modified           = '▌'
@@ -406,16 +365,9 @@ EOF
 
 " }}}
 " HEXOKINASE (COLORIZER) {{{
-  let g:Hexokinase_highlighters = [ 'backgroundfull' ]
-  let g:Hexokinase_ftEnabled    = ['css', 'html', 'javascript', 'sass', 'slim', 'vim']
-  let g:Hexokinase_optInPatterns = [
-  \     'full_hex',
-  \     'triple_hex',
-  \     'rgb',
-  \     'rgba',
-  \     'hsl',
-  \     'hsla'
-  \ ]
+  let g:Hexokinase_highlighters  = ['backgroundfull']
+  let g:Hexokinase_ftEnabled     = ['css', 'html', 'javascript', 'sass', 'slim', 'vim']
+  let g:Hexokinase_optInPatterns = ['full_hex', 'triple_hex', 'rgb', 'rgba', 'hsl', 'hsla']
 " }}}
 " MATCHUP{{{
   augroup matchup_matchparen_highlight
@@ -423,6 +375,7 @@ EOF
     autocmd ColorScheme * hi MatchParen guifg=#c678dd gui=bold
     autocmd ColorScheme * hi MatchWord  guifg=#FFCB6B gui=italic
   augroup END
+
   let g:matchup_surround_enabled     = 1
   let g:matchup_matchparen_deferred  = 1
   let g:matchup_matchparen_offscreen = {}
@@ -437,15 +390,9 @@ lua <<EOF
         ["variable.builtin"] = "PreProc",
       }
     },
-    refactor = {
-      highlight_definitions = { enable = false },
-      smart_rename = {
-        enable = true,
-        keymaps = {
-          smart_rename = "grr",
-        },
-      },
-    },
+    indent = {
+      enable = true
+    }
   }
 EOF
   " }}}
@@ -462,43 +409,11 @@ local map = function(mode, key, result, noremap)
     vim.api.nvim_buf_set_keymap(0, mode, key, result, {noremap = noremap, silent = true})
 end
 
--- vim.g.completion_enable_auto_popup      = false
--- vim.g.completion_enable_snippet         = "UltiSnips"
--- vim.g.completion_matching_strategy_list = {"exact", "substring", "fuzzy", "all"}
--- vim.g.completion_auto_change_source     = 1
--- vim.g.completion_matching_smart_case    = 1
--- vim.g.completion_chain_complete_list    = {
---     default = {
---         {complete_items = {"lsp"}},
---         {complete_items = {"snippet"}},
---         {complete_items = {"path"}},
---         {mode = "<c-n>"},
---         {mode = "dict"}
---     }
--- }
-
--- vim.g.completion_enable_auto_paren = 1
--- vim.g.completion_customize_lsp_label = {
---     Function  = " [function]",
---     Method    = " [method]",
---     Reference = " [refrence]",
---     Enum      = " [enum]",
---     Field     = "ﰠ [field]",
---     Keyword   = " [key]",
---     Variable  = " [variable]",
---     Folder    = " [folder]",
---     Snippet   = " [snippet]",
---     Operator  = " [operator]",
---     Module    = " [module]",
---     Text      = "ﮜz[text]",
---     Class     = " [class]",
---     Interface = " [interface]"
--- }
-
 vim.lsp.handlers["textDocument/formatting"] = function(err, _, result, _, bufnr)
     if err ~= nil or result == nil then
         return
     end
+
     if not vim.api.nvim_buf_get_option(bufnr, "modified") then
         local view = vim.fn.winsaveview()
         vim.lsp.util.apply_text_edits(result, bufnr)
@@ -528,6 +443,9 @@ end
 -- end
 
 local on_attach = function(client)
+    -- Illuminate handles highlighting keywords
+    require 'illuminate'.on_attach(client)
+
     -- Handle formatting with EFM
     client.resolved_capabilities.document_formatting = false
 
@@ -573,24 +491,17 @@ end
 lspconfig.efm.setup {
     on_attach = on_attach_efm,
     init_options = { documentFormatting = true },
-    cmd = { "efm-langserver", "-c", "~/.config/efm-langserver/config.yaml" },
-    settings = {
-        rootMarkers = {".git/"},
-        languages = {
-            javascript = {
-              lintCommand        = "eslint -f unix --stdin",
-              lintIgnoreExitCode = true,
-              lintStdin          = true
-            },
-            ruby = {
-              lintCommand          = "rubocop-daemon-wrapper --stdin",
-              lintIgnoreExitCode   = true,
-              lintStdin            = true,
-              formatCommand        = "rubocop-daemon-wrapper --stdin -A",
-              formatIgnoreExitCode = true,
-              formatStdin          = true,
-            }
-        }
+    default_config = {
+      cmd = { "efm-langserver", "-c", [["$HOME/.config/efm-langserver/config.yaml"]] },
+    },
+    filetypes = {
+      "javascript",
+      "javascriptreact",
+      "javascript.jsx",
+      "typescript",
+      "typescript.tsx",
+      "typescriptreact",
+      "ruby"
     }
 }
 
@@ -602,17 +513,17 @@ let g:lsp_signs_enabled       = 1
 let g:lsp_signs_error         = {'text': '!!'}
 let g:lsp_signs_warning       = {'text': '~>'}
 let g:lsp_highlights_enabled  = 1
-"
-" " Do not use virtual text
+
+" Do not use virtual text
 let g:lsp_virtual_text_enabled = 0
-"
-" " echo a diagnostic message at cursor position
+
+" echo a diagnostic message at cursor position
 let g:lsp_diagnostics_echo_cursor = 0
-"
-" " show diagnostic in floating window
+
+" show diagnostic in floating window
 let g:lsp_diagnostics_float_cursor = 1
-"
-" " whether to enable highlight a symbol and its references
+
+" whether to enable highlight a symbol and its references
 let g:lsp_highlight_references_enabled = 1
 let g:lsp_preview_max_width = 80
 
@@ -667,6 +578,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   set signcolumn=yes        " always show signcolumns
   set fillchars+=eob:\      " Don't show ~ off end of buffer
   set virtualedit=block     " allow cursor to move where there is no text in visual block mode
+  set mouse=a               " Allow mouse to interact with vim
 
   set backup
   set undofile              " Persistant Undo
@@ -763,13 +675,15 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
       " Delete item from Quickfix
       autocmd BufWinEnter quickfix nnoremap <buffer> <silent> dd
             \ <Cmd>call setqflist(filter(getqflist(), {idx -> idx != line('.') - 1}), 'r') <Bar> cc<CR>
-      " Resize QF buffer on open, and focus back up top
-      autocmd BufWinEnter quickfix call timer_start(100, { -> execute('cclose|' . min([10, len(getqflist())]) . 'cwindow | wincmd w') })
+
+      " Resize QF buffer on open
+      autocmd BufWinEnter quickfix execute('resize ' . min([10, len(getqflist())]))
     augroup END
   " }}}
   " REMOVE TRAILING WHITESPACE && EMPTY LINES ON SAVE {{{
     augroup stripWhitespaceOnSave
       autocmd!
+      " autocmd BufWritePre * :%s/\s\+$//e
       autocmd BufWritePre * :call TrimWhitespace()
       autocmd BufWritePre * :call TrimEndLines()
     augroup END
@@ -912,18 +826,12 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     endfunction
   " }}}
   " SMART ENTER FOR AUTOCOMPLETION {{{
-    " complete_info()["selected"] is '-1' when nothing is selected
-    " imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] != "-1" ?
-    "       \ "\<Plug>(completion_confirm_completion)" : "\<CR>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
-    imap <expr> <CR> (pumvisible() ? (complete_info()["selected"] == "-1" ?  "\<CR>\<Plug>DiscretionaryEnd" :  "\<C-Y>\<Plug>DiscretionaryEnd") : "\<CR>\<Plug>DiscretionaryEnd" )
+    " complete_info()["selected"] is -1 when nothing is selected
+    imap <silent><expr> <CR>
+      \ (pumvisible() ?
+        \ (complete_info()["selected"] == -1 ? "\<C-g>u\<CR>\<Plug>DiscretionaryEnd" : "\<C-y>")
+        \ : "\<CR>\<Plug>DiscretionaryEnd" )
   "}}}
-  " CHECK BACK SPACE {{{
-    " Used to trigger auto-completion
-    function! s:check_back_space() abort
-        let col = col('.') - 1
-        return !col || getline('.')[col - 1]  =~ '\s'
-    endfunction
-  " }}}
   " REMOVE TRAILING WHITESPACE {{{
     function! TrimWhitespace()
       let l:save = winsaveview()
@@ -962,6 +870,16 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
         endif
       endfunction
   " }}}
+  " SMART INSERT {{{
+    " Smart-indent line if it's empty
+    function! SmartInsert()
+      if len(getline('.')) == 0
+        return "\"_cc"
+      else
+        return "i"
+      endif
+    endfunction
+  " }}}
 " }}}
 
 " Key Mappings {{{
@@ -994,8 +912,10 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   " rebinds semi-colon in normal mode.
   nnoremap ; :
 
+  " rebind 'i' to do a smart-indent if its a blank line
+  nnoremap <expr> i SmartInsert()
+
   nnoremap <silent><f7> :bprevious<cr>
-  nnoremap <silent><f8> :tabnext<cr>
   nnoremap <silent><f9> :bnext<cr>
 
   " Change text without putting the text into register,
