@@ -54,7 +54,7 @@ call plug#begin()
 
   if has('nvim-0.5')
     Plug 'Shougo/deoplete-lsp'
-    Plug 'nvim-treesitter/nvim-treesitter'
+    Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
     Plug 'neovim/nvim-lspconfig'
     Plug 'RRethy/vim-illuminate'
   endif
@@ -263,6 +263,8 @@ call plug#end()
     autocmd!
     autocmd FileType fzf call InvertBackground()
       \| autocmd BufLeave <buffer> call ResetBackground()
+    autocmd FileType fzf tnoremap <buffer> <C-j> <Down>
+    autocmd FileType fzf tnoremap <buffer> <C-k> <Up>
   augroup END
 
   let g:fzf_action = {
@@ -391,7 +393,7 @@ lua <<EOF
       }
     },
     indent = {
-      enable = true
+      enable = false
     }
   }
 EOF
@@ -654,6 +656,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
       autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth noruler signcolumn=no noshowmode
       autocmd TermOpen * startinsert
       autocmd TermClose * set showmode ruler
+      autocmd WinEnter term://* startinsert
     augroup END
   " }}}
   " EASYQUIT {{{
