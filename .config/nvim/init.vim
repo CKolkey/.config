@@ -23,6 +23,7 @@ call plug#begin()
   Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
   Plug 'Krasjet/auto.pairs'                                     " Autoclose Parens intelligently
   Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
+  Plug 'jgdavey/vim-turbux'                                     " Send spec's to a second TMUX pane
   Plug 'qpkorr/vim-bufkill'                                     " Close Buffers without closing Splits
   Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
   Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
@@ -53,10 +54,12 @@ call plug#begin()
   Plug 'Shougo/neco-syntax'
 
   if has('nvim-0.5')
-    Plug 'Shougo/deoplete-lsp'
+    Plug 'Shougo/deoplete-lsp' " Autocompletion
     Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
     Plug 'neovim/nvim-lspconfig'
-    Plug 'RRethy/vim-illuminate'
+    Plug 'RRethy/vim-illuminate' " Highlight the same word as under cursor
+    Plug 'lukas-reineke/indent-blankline.nvim', { 'branch': 'lua' }
+    Plug 'glepnir/indent-guides.nvim' " Indentation Guides
   endif
 call plug#end()
 " }}}
@@ -67,7 +70,6 @@ call plug#end()
   let g:airline#extensions#tabline#enabled      = 1
   let g:airline#extensions#tabline#formatter    = 'unique_tail_improved'
   let g:airline#extensions#bufferline#enabled   = 1
-  " let g:airline#extensions#gutentags#enabled    = 1
   let g:airline_theme                           = 'deus'
   let g:airline_powerline_fonts                 = 1
   let g:airline_left_sep                        = '█'
@@ -371,6 +373,18 @@ call plug#end()
   let g:Hexokinase_ftEnabled     = ['css', 'html', 'javascript', 'sass', 'slim', 'vim']
   let g:Hexokinase_optInPatterns = ['full_hex', 'triple_hex', 'rgb', 'rgba', 'hsl', 'hsla']
 " }}}
+  " INDENT GUIDES {{{
+    " Indent Blanklines {{{
+    let g:indent_blankline_char_highlight_list = ['IndentBlanklineOdd', 'IndentBlanklineEven']
+    let g:indent_blankline_char = '█'
+    let g:indent_blankline_filetype_exclude = ['ruby']
+    " }}}
+lua <<EOF
+  require('indent_guides').setup({
+    exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf'}
+  })
+EOF
+  " }}}
 " MATCHUP{{{
   augroup matchup_matchparen_highlight
     autocmd!
@@ -537,6 +551,18 @@ nnoremap <leader>ho :lua vim.lsp.buf.hover()<CR>
 nnoremap <leader>rn :lua vim.lsp.buf.rename()<CR>
 nnoremap <leader>f :lua vim.lsp.buf.references()<CR>
 nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
+  " }}}
+  " TURBUX {{{
+    let g:no_turbux_mappings = 1
+    nnoremap <silent><leader>m :call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
+    nnoremap <silent><leader>M :call SendTestToTmux(expand('%'))<CR>
+
+    let g:turbux_custom_runner = 'TurbuxCustomRunner' " default: (unset)
+    function! TurbuxCustomRunner(command)
+      call OpenTerminalDrawer()
+      call chansend(g:terminal_drawer.terminal_job_id, [a:command, ""])
+      return
+    endfunction
   " }}}
 " }}}
 
@@ -743,30 +769,47 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     let g:terminal_drawer_height   = 0.25
     let g:terminal_drawer_position = "botright"
 
-    let g:terminal_drawer = { 'win_id': v:null, 'buffer_id': v:null }
+    let g:terminal_drawer = { 'win_id': v:null, 'buffer_id': v:null, 'terminal_job_id': v:null, 'state': 'closed' }
     function! ToggleTerminalDrawer() abort
       if win_gotoid(g:terminal_drawer.win_id)
-        hide
-        set laststatus=2 showmode ruler
+        call CloseTerminalDrawer()
       else
-        exec g:terminal_drawer_position . " new"
-        if !g:terminal_drawer.buffer_id
-          call termopen($SHELL, {"detach": 0})
-          let g:terminal_drawer.buffer_id = bufnr("")
-        else
-          exec 'buffer' g:terminal_drawer.buffer_id
-          call RemoveEmptyBuffers()
-        endif
-
-        exec 'resize' float2nr(&lines * g:terminal_drawer_height)
-        setlocal laststatus=0 noshowmode noruler
-        setlocal nobuflisted
-        echo ''
-        startinsert!
-        let g:terminal_drawer.win_id = win_getid()
-
-        tnoremap <buffer><Esc> <C-\><C-n>
+        call OpenTerminalDrawer()
       endif
+    endfunction
+
+    function! CloseTerminalDrawer() abort
+      hide
+      set laststatus=2 showmode ruler
+      let g:terminal_drawer.state = 'closed'
+      stopinsert
+    endfunction
+
+    function! OpenTerminalDrawer() abort
+      if g:terminal_drawer.state == 'open'
+        " Don't open terminal if already open
+        return
+      endif
+
+      exec g:terminal_drawer_position . " new"
+      if !g:terminal_drawer.buffer_id
+        call termopen($SHELL, {"detach": 0})
+        let g:terminal_drawer.buffer_id = bufnr("")
+      else
+        exec 'buffer' g:terminal_drawer.buffer_id
+        call RemoveEmptyBuffers()
+      endif
+
+      exec 'resize' float2nr(&lines * g:terminal_drawer_height)
+      setlocal laststatus=0 noshowmode noruler
+      setlocal nobuflisted
+      echo ''
+      startinsert!
+      let g:terminal_drawer.win_id = win_getid()
+      let g:terminal_drawer.terminal_job_id = b:terminal_job_id
+      let g:terminal_drawer.state = 'open'
+
+      tnoremap <buffer><Esc> <C-\><C-n>
     endfunction
   " }}}
   " LAZYGIT {{{
@@ -1079,13 +1122,15 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   highlight slimAttr  gui=italic
 
   " Active and Inactive window bg color
-  hi ActiveWindow   guibg=NONE
-  hi InactiveWindow guibg=#2c323c
+  highlight ActiveWindow   guibg=NONE
+  highlight InactiveWindow guibg=#2c323c
   set winhighlight=Normal:ActiveWindow,NormalNC:InactiveWindow
 
   " Set Transparent Background
-  hi Normal guibg=NONE
+  highlight Normal guibg=NONE
 
+  highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F
+  highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A
   " DIRVISH GIT {{{
     hi default DirvishGitModified guifg=#FFE082
     hi default DirvishGitRenamed  guifg=#FFE082
