@@ -17,7 +17,6 @@ call plug#begin()
   Plug 'joshdick/onedark.vim'                                   " Colorscheme
 
   Plug 'wincent/ferret'                                         " Enhanced Multi-file search and replace
-  Plug 'wincent/scalpel'                                        " Replace word under Cursor in buffer/selection. Activate with <leader-e>
   Plug 'tommcdo/vim-lion'                                       " Align characters across lines
   Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
   Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
@@ -30,7 +29,6 @@ call plug#begin()
   Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
   Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
   Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
-  Plug 'airblade/vim-gitgutter'                                 " Git Line status in left gutter
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
   Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
@@ -54,12 +52,13 @@ call plug#begin()
   Plug 'Shougo/neco-syntax'
 
   if has('nvim-0.5')
-    Plug 'Shougo/deoplete-lsp' " Autocompletion
+    Plug 'Shougo/deoplete-lsp'                                  " Autocompletion
     Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
     Plug 'neovim/nvim-lspconfig'
-    Plug 'RRethy/vim-illuminate' " Highlight the same word as under cursor
-    Plug 'lukas-reineke/indent-blankline.nvim', { 'branch': 'lua' }
-    Plug 'glepnir/indent-guides.nvim' " Indentation Guides
+    Plug 'RRethy/vim-illuminate'                                " Highlight the same word as under cursor
+    Plug 'glepnir/indent-guides.nvim'                           " Indentation Guides
+    Plug 'nvim-lua/plenary.nvim'                                " Utilities for LUA
+    Plug 'lewis6991/gitsigns.nvim'                              " Gitgutter
   endif
 call plug#end()
 " }}}
@@ -232,14 +231,9 @@ call plug#end()
     endfunction
 
     let g:deoplete#enable_at_startup = 1
-    call deoplete#custom#option({
-      \ 'num_processes' : -1,
-      \ 'sources'       : {
-        \ '_': ['tag', 'buffer', 'file', 'syntax'],
-        \ 'ruby': ['lsp', 'tags', 'buffer', 'syntax', 'file'],
-        \ 'javascript': ['lsp', 'tags', 'buffer', 'syntax', 'file'],
-        \ }
-      \ })
+    let g:deoplete#lsp#use_icons_for_candidates = v:true
+    call deoplete#custom#option({'sources': { '_': ['lsp', 'tags', 'buffer', 'syntax', 'file'] }})
+    call deoplete#custom#option('num_processes', -1)
     call deoplete#custom#option('auto_complete_delay', 100)
     call deoplete#custom#option('smart_case', v:true)
     call deoplete#custom#option('min_pattern_length', 1)
@@ -298,11 +292,18 @@ call plug#end()
   command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 "}}}
 " GITGUTTER {{{
-  let g:gitgutter_sign_added             = '▌'
-  let g:gitgutter_sign_modified           = '▌'
-  let g:gitgutter_sign_modified_removed  = '▌'
-  let g:gitgutter_sign_removed_first_line = '▔'
-  let g:gitgutter_sign_removed           = '▁'
+lua <<EOF
+require('gitsigns').setup {
+  signs = {
+    add          = {hl = 'DiffAdd'   , text = '▌', numhl='GitSignsAddNr'},
+    change       = {hl = 'DiffChange', text = '▌', numhl='GitSignsChangeNr'},
+    topdelete    = {hl = 'DiffDelete', text = '▔', numhl='GitSignsDeleteNr'},
+    delete       = {hl = 'DiffDelete', text = '▁', numhl='GitSignsDeleteNr'},
+    changedelete = {hl = 'DiffChange', text = '▁', numhl='GitSignsChangeNr'},
+  },
+  numhl = false,
+}
+EOF
 " }}}
 " GUTENTAGS {{{
   " enable gtags module
@@ -374,14 +375,11 @@ call plug#end()
   let g:Hexokinase_optInPatterns = ['full_hex', 'triple_hex', 'rgb', 'rgba', 'hsl', 'hsla']
 " }}}
   " INDENT GUIDES {{{
-    " Indent Blanklines {{{
-    let g:indent_blankline_char_highlight_list = ['IndentBlanklineOdd', 'IndentBlanklineEven']
-    let g:indent_blankline_char = '█'
-    let g:indent_blankline_filetype_exclude = ['ruby']
-    " }}}
 lua <<EOF
   require('indent_guides').setup({
-    exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf'}
+    exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf', 'terminal'};
+    even_colors = { fg = '#2E323A', bg = '#34383F' };
+    odd_colors  = { fg = '#34383F', bg = '#2E323A' };
   })
 EOF
   " }}}
@@ -552,7 +550,7 @@ nnoremap <leader>rn :lua vim.lsp.buf.rename()<CR>
 nnoremap <leader>f :lua vim.lsp.buf.references()<CR>
 nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   " }}}
-  " TURBUX {{{
+  " TURBUX (Test Runner) {{{
     let g:no_turbux_mappings = 1
     nnoremap <silent><leader>m :call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
     nnoremap <silent><leader>M :call SendTestToTmux(expand('%'))<CR>
@@ -578,7 +576,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   set shiftwidth=2
   set expandtab
   set shiftround            " Use multiple of shiftwidth when indenting with > and <
-  set autoindent
+  set smartindent
   set incsearch             " Show matches While searching
   set inccommand=split      " Show substitutions live
   set ignorecase            " ignore case on search
@@ -594,7 +592,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   set foldmethod=marker     " Fold code between {{{ and }}}
   set grepprg=rg\ --vimgrep " Use RipGrep for grepping
   set clipboard+=unnamedplus " Use system Clipboard
-  set scrolloff=6          " Keep 10 lines above/below cursor
+  set scrolloff=6          " Keep n lines above/below cursor
   set lazyredraw           " Don't redaw screen while executing macro
   set winwidth=80
   set winheight=10
@@ -608,6 +606,15 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   set virtualedit=block     " allow cursor to move where there is no text in visual block mode
   set mouse=a               " Allow mouse to interact with vim
 
+  " Make Dirs {{{
+    if !isdirectory($HOME . "/.cache/nvim/backup")
+      call mkdir($HOME . "/.cache/nvim/backup", "p", 0700)
+    endif
+
+    if !isdirectory($HOME . "/.cache/nvim/undo")
+      call mkdir($HOME . "/.cache/nvim/undo", "p", 0700)
+    endif
+  " }}}
   set backup
   set undofile              " Persistant Undo
   set undodir=$HOME/.cache/nvim/undo
@@ -679,7 +686,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   " TERMINAL BEHAVIOR {{{
     augroup TerminalBehavior
       autocmd!
-      autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth noruler signcolumn=no noshowmode
+      autocmd TermOpen * setlocal listchars= nonumber norelativenumber nowrap winfixwidth noruler signcolumn=no noshowmode scrolloff=0
       autocmd TermOpen * startinsert
       autocmd TermClose * set showmode ruler
       autocmd WinEnter term://* startinsert
@@ -803,6 +810,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
       exec 'resize' float2nr(&lines * g:terminal_drawer_height)
       setlocal laststatus=0 noshowmode noruler
       setlocal nobuflisted
+      setlocal ft=terminal
       echo ''
       startinsert!
       let g:terminal_drawer.win_id = win_getid()
@@ -935,7 +943,13 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <leader>pu :PlugUpdate<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
-  nnoremap <leader>fr :%s///gc<left><left><left><left>
+
+  " Fast Find and Replace
+  nnoremap R :%s/\<<C-r><C-w>\>//g<Left><Left><C-r><C-w>
+
+  " Code Action Menu
+  nnoremap <silent><Leader>ca :lua vim.lsp.buf.code_action()<CR>
+  vnoremap <silent><Leader>ca :lua vim.lsp.buf.code_action()<CR>
 
   " Open Last Buffer
   nnoremap <Leader><Leader> <C-^>
@@ -964,10 +978,10 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <silent><f7> :bprevious<cr>
   nnoremap <silent><f9> :bnext<cr>
 
-  " Change text without putting the text into register,
-  nnoremap c "_c
-  nnoremap C "_C
-  nnoremap cc "_cc
+  " " Change text without putting the text into register,
+  " nnoremap c "_c
+  " nnoremap C "_C
+  " nnoremap cc "_cc
 
   " Y yanks to the end of the line instead of the whole line (like D)
   nnoremap Y y$
@@ -1007,10 +1021,10 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   noremap  <C-e> <C-w>c<Cr>
 
   " buffer splits
-  nmap <silent><nowait><leader>sh  :leftabove  vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><nowait><leader>sl  :rightbelow vnew<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><nowait><leader>sk  :leftabove  new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
-  nmap <silent><nowait><leader>sj  :rightbelow new<CR>:bnext<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sh  :leftabove  vnew<CR>:bprev<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sl  :rightbelow vnew<CR>:bprev<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sk  :leftabove  new<CR>:bprev<CR>:call RemoveEmptyBuffers()<CR>
+  nmap <silent><nowait><leader>sj  :rightbelow new<CR>:bprev<CR>:call RemoveEmptyBuffers()<CR>
 
   " Enter inserts newline without leaving Normal mode
   nmap <s-cr> O<Esc>
@@ -1021,7 +1035,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <silent> N Nzz
   nnoremap <silent> * *zz
   nnoremap <silent> # #zz
-
 
   " use tab and shift tab to indent and de-indent code
   nnoremap <Tab>   >>
@@ -1131,10 +1144,8 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
 
   highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F
   highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A
-  " DIRVISH GIT {{{
-    hi default DirvishGitModified guifg=#FFE082
-    hi default DirvishGitRenamed  guifg=#FFE082
-    hi default DirvishGitStaged   guifg=#C3E88D
-    hi default DirvishGitUnmerged guifg=#E06C75
-  " }}}
+
+  highlight DiffAdd    guifg=#98c379 guibg=NONE gui=NONE
+  highlight DiffChange guifg=#fdde81 guibg=NONE gui=NONE
+  highlight DiffDelete guifg=#e06c75 guibg=NONE gui=NONE
 " }}}
