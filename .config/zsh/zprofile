@@ -1,0 +1,19 @@
+# heroku autocomplete setup
+HEROKU_AC_ZSH_SETUP_PATH=/Users/Cameron/Library/Caches/heroku/autocomplete/zsh_setup && test -f $HEROKU_AC_ZSH_SETUP_PATH && source $HEROKU_AC_ZSH_SETUP_PATH
+
+# FZF
+export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
+[ -f ~/.config/zsh/fzf.zsh ] && source ~/.config/zsh/fzf.zsh
+
+# General Coloring (GRC)
+[[ -s "/etc/grc.zsh" ]] && source /etc/grc.zsh
+
+# RBENV
+type -a rbenv > /dev/null && eval "$(rbenv init -)"
+export DISABLE_SPRING=1
+
+# NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+ulimit -n 65536

@@ -55,9 +55,13 @@
   mergeoptions = --no-edit
 [user]
 	email = Alleyria@gmail.com
-	name = Cameron Kolkey
+	name = Cameron
 [filter "lfs"]
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
+[pull]
+	rebase = false
+[init]
+	defaultBranch = master

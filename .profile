@@ -7,3 +7,6 @@
 # export PATH="$HOME/.cargo/bin:$PATH"
 brew services restart skhd
 brew services restart yabai
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm

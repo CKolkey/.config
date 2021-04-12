@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/sbin/diskutil list | grep -e ' \+[0-9]\+: \+[^ ]\+ [^ ]\+' | sed 's/.*\(disk[0-9].*\)/\1/' | xargs -I{} /usr/sbin/diskutil mount {}

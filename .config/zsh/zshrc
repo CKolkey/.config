@@ -1,13 +1,18 @@
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  # SSH Agent is linux only
-  keychain id_rsa
-  . ~/.keychain/$(uname -n)-sh
+# User configuration
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR='/usr/local/bin/nvim'
+export ZSH=$HOME/.oh-my-zsh
+export UPDATE_ZSH_DAYS=1
+export TERM=xterm-256color
 
-  # Launch TMUX if it's not active, only on linux box
-  [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
-  # Close connection after TMUX terminates
-  [ -z "$TMUX" ] && clear && exit
-fi
+# Color LESS output
+export LESS="-R"
+export LESSOPEN="| bat %s"
+
+# Vi-Mode
+export KEYTIMEOUT=1
+export RPS1="%{$reset_color%}" # Must be before oh-my-zsh source
 
 # Oh My ZSH Stuff
 COMPLETION_WAITING_DOTS="true"
@@ -18,7 +23,6 @@ plugins=(
   vi-mode
   colored-man-pages
   postgres
-  autoupdate
   git
   gitfast
   last-working-dir
@@ -29,22 +33,6 @@ plugins=(
   zsh-interactive-cd
   fzf-tab
 )
-
-# User configuration
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export EDITOR='/usr/local/bin/nvim'
-export ZSH=$HOME/.oh-my-zsh
-export TERM=xterm-256color
-export UPDATE_ZSH_DAYS=1
-
-# Color LESS output
-export LESS="-R"
-export LESSOPEN="| bat %s"
-
-# Vi-Mode
-export KEYTIMEOUT=1
-export RPS1="%{$reset_color%}" # Must be before oh-my-zsh source
 
 # History
 HISTFILE=$HOME/.cache/zsh/history
@@ -59,12 +47,10 @@ setopt share_history        # share history between different instances of the s
 DISABLE_UPDATE_PROMPT=true
 
 # Sourcing other files
-source $HOME/.config/zsh/login_motd
 source $ZSH/oh-my-zsh.sh
 source $HOME/.config/zsh/aliases
 source $HOME/.config/zsh/functions
 source $HOME/.config/zsh/prompt
-
 
 # ZSH Options
 setopt auto_cd       # cd by typing the dir name if its not a command name
@@ -79,40 +65,19 @@ set show-all-if-ambiguous on
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
-# heroku autocomplete setup
-HEROKU_AC_ZSH_SETUP_PATH=/Users/Cameron/Library/Caches/heroku/autocomplete/zsh_setup && test -f $HEROKU_AC_ZSH_SETUP_PATH && source $HEROKU_AC_ZSH_SETUP_PATH
-
-# Autocompletion and Kitty
-autoload -Uz compinit
-
 # Cache completion list for faster load times
+autoload -Uz compinit
 typeset -i updated_at=$(date +'%j' -r ~/.zcompdump 2>/dev/null || stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
 if [ $(date +'%j') != $updated_at ]; then
-  compinit -i
+  # compinit -i
+  compinit
 else
   compinit -C -i
 fi
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  zmodload -i zsh/complist
-  kitty + complete setup zsh | source /dev/stdin
-fi
-
-# FZF
-export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
-[ -f ~/.config/zsh/fzf.zsh ] && source ~/.config/zsh/fzf.zsh
-
-# General Coloring (GRC)
-[[ -s "/etc/grc.zsh" ]] && source /etc/grc.zsh
-
-# Load rbenv if installed
-# export PATH="${HOME}/.rbenv/bin:${PATH}"
-type -a rbenv > /dev/null && eval "$(rbenv init -)"
-export DISABLE_SPRING=1
-
-# NVM
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Autocompletion and Kitty
+zmodload -i zsh/complist
+kitty + complete setup zsh | source /dev/stdin
 
 export PATH="/usr/local/opt/python/libexec/bin:$PATH"
 export PATH="/usr/local/opt/sqlite/bin:$PATH"
@@ -120,5 +85,9 @@ export PATH="/usr/local/opt/curl/bin:$PATH"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
 export PATH="/snap/bin:$PATH"
-export PATH="$HOME/neovim/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+
+# Launch TMUX if it's not active
+[ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
+# Close connection after TMUX terminates
+[ -z "$TMUX" ] && clear && exit

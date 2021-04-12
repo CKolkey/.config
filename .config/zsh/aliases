@@ -11,7 +11,7 @@ alias zshrc="v ~/.zshrc"
 alias ohmyzsh="v ~/.oh-my-zsh"
 
 alias restart-et="sudo systemctl restart et"
-
+alias rdw="rubocop-daemon-wrapper"
 alias v='nvim'
 alias vi='nvim'
 alias vim='nvim'
@@ -49,6 +49,7 @@ alias vf='v $(fzfi)'
 alias chip="cd ~/code/Principium/Chipmunk"
 alias nut="cd ~/code/Principium/Nuthouse"
 alias aoc="cd ~/code/adventofcode/2020"
+alias deep="cd ~/code/deepdivr"
 alias rc='bin/rails console'
 alias herokyu="heroku"
 

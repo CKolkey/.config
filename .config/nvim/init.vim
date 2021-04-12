@@ -1,9 +1,25 @@
 " Plugin Settings & Mappings PRE {{{
   " POLYGLOT {{{
-    let g:polyglot_disabled = ['ruby', 'eruby', 'slim']
+    let g:polyglot_disabled = ['ruby', 'eruby', 'slim', 'autoindent', 'sensible']
   " }}}
 " }}}
+" Language Settings {{{
+  " Ruby {{{
+    let ruby_operators               = 1
+    let ruby_line_continuation_error = 1
+    let ruby_pseudo_operators        = 1
+    let ruby_space_errors            = 1
+    let ruby_global_variable_error   = 1
+    let ruby_spellcheck_strings      = 1
 
+    let g:ruby_indent_assignment_style = 'hanging'
+    let g:ruby_indent_block_style = 'do'
+    let g:ruby_indent_hanging_elements = 1
+  " }}}
+  " Slim {{{
+    " autocmd BufNewFile,BufRead *.slim setlocal filetype=slim
+  " }}}
+" }}}
 " Plugins {{{
 " Auto-Install vim-plug {{{
   if empty(glob('~/.config/nvim/autoload/plug.vim'))
@@ -16,30 +32,25 @@ call plug#begin()
   Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
   Plug 'joshdick/onedark.vim'                                   " Colorscheme
 
-  Plug 'wincent/ferret'                                         " Enhanced Multi-file search and replace
   Plug 'tommcdo/vim-lion'                                       " Align characters across lines
   Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
-  Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
+  " Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
   Plug 'Krasjet/auto.pairs'                                     " Autoclose Parens intelligently
   Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
   Plug 'jgdavey/vim-turbux'                                     " Send spec's to a second TMUX pane
-  Plug 'qpkorr/vim-bufkill'                                     " Close Buffers without closing Splits
-  Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
-  Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
-  Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
   Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
   Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
   Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
-  Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
-  Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
+  " Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
   Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
-  Plug 'skywind3000/gutentags_plus'                             " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
   Plug 'junegunn/fzf.vim'
-  Plug 'vim-airline/vim-airline'                                " Status Bar and Tab Bar
-  Plug 'vim-airline/vim-airline-themes'
+
+  Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
+  Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
+  Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
 
   Plug 'tpope/vim-rails'                                        " Rails Specific Commands
   Plug 'tpope/vim-endwise'                                      " Place an 'end' in ruby blocks automatically
@@ -48,70 +59,59 @@ call plug#begin()
   Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
   Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete Engine
-  Plug 'Shougo/neco-syntax'
+  " Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
+  " Plug 'Shougo/neco-syntax'                                     " Autocomplete Source for Syntax
 
   if has('nvim-0.5')
-    Plug 'Shougo/deoplete-lsp'                                  " Autocompletion
     Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
     Plug 'neovim/nvim-lspconfig'
     Plug 'RRethy/vim-illuminate'                                " Highlight the same word as under cursor
     Plug 'glepnir/indent-guides.nvim'                           " Indentation Guides
     Plug 'nvim-lua/plenary.nvim'                                " Utilities for LUA
     Plug 'lewis6991/gitsigns.nvim'                              " Gitgutter
+    Plug 'hrsh7th/nvim-compe'                                   " Completion
+    Plug 'kyazdani42/nvim-web-devicons'                         " Icons for BarBar
+    Plug 'kyazdani42/nvim-tree.lua'                             " File Browser
+    Plug 'romgrk/barbar.nvim'                                   " BufferLine
+    Plug 'glepnir/galaxyline.nvim', {'branch': 'main'}          " StatusLine
+    Plug 'nacro90/numb.nvim'                                    " Peek line when typing :{number}
+    Plug 'glepnir/lspsaga.nvim'                                 " Code Actions for LSP
   endif
 call plug#end()
 " }}}
-
 " Plugin Settings & Mappings POST {{{
-" AIRLINE{{{
-  let g:airline#extensions#ale#enabled          = 1
-  let g:airline#extensions#tabline#enabled      = 1
-  let g:airline#extensions#tabline#formatter    = 'unique_tail_improved'
-  let g:airline#extensions#bufferline#enabled   = 1
-  let g:airline_theme                           = 'deus'
-  let g:airline_powerline_fonts                 = 1
-  let g:airline_left_sep                        = '█'
-  let g:airline_right_sep                       = '█'
-  let g:airline_left_alt_sep                    = ' '
-  let g:airline#extensions#tabline#left_sep     = '█'
-  let g:airline#extensions#tabline#right_sep    = '█'
-  let g:airline#extensions#tabline#left_alt_sep = ' '
-"}}}
-" ALE{{{
+" " ALE{{{
   " from: https://github.com/fohte/rubocop-daemon
-  nnoremap <silent><f8> :ALEFix<cr>
+  " nnoremap <silent><f8> :ALEFix<cr>
 
-  " nnoremap <silent><f8> :call AleFixResetView()<cr>
-  function! AleFixResetView()
-    let l:save = winsaveview()
-    exec(':ALEFix')
-    call winrestview(l:save)
-  endfunction
+  " let g:ale_ruby_rubocop_executable       = 'rubocop-daemon-wrapper'
+  " let g:ale_ruby_rubocop_auto_correct_all = 1
+  " let g:ale_javascript_eslint_executable  = 'eslint_d'
+  " let g:ale_javascript_eslint_use_global  = 1
 
-  let g:ale_ruby_rubocop_executable       = 'rubocop-daemon-wrapper'
-  let g:ale_ruby_rubocop_auto_correct_all = 1
-  let g:ale_javascript_eslint_executable  = 'eslint_d'
-  let g:ale_javascript_eslint_use_global  = 1
+  " let g:ale_linters = {
+  "   \   'javascript': ['eslint'],
+  "   \   'ruby':       ['rubocop'],
+  "   \}
 
-  let g:ale_linters = {
-    \   'javascript': ['eslint'],
-    \   'ruby':       ['rubocop'],
-    \}
+  " let g:ale_fixers = {
+  "   \   '*': ['remove_trailing_lines', 'trim_whitespace'],
+  "   \   'ruby':       ['rubocop'],
+  "   \   'javascript': ['eslint'],
+  "   \}
 
-  let g:ale_fixers = {
-    \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-    \   'ruby':       ['rubocop'],
-    \   'javascript': ['eslint'],
-    \}
-
-  let g:ale_fix_on_save        = 0
-  let g:ale_linters_explicit   = 1
-  let g:ale_sign_column_always = 1
-  let g:ale_sign_error         = '!!'
-  let g:ale_sign_warning       = '~>'
-  let g:ale_sign_highlight_linenrs = 1
+  " let g:ale_fix_on_save        = 0
+  " let g:ale_linters_explicit   = 1
+  " let g:ale_sign_column_always = 1
+  " let g:ale_sign_error         = '!!'
+  " let g:ale_sign_warning       = '~>'
+  " let g:ale_sign_highlight_linenrs = 1
 "}}}
+  " BARBAR {{{
+  let bufferline = get(g:, 'bufferline', {})
+  let bufferline.maximum_padding = 2
+  let bufferline.icon_close_tab_modified = '!'
+  " }}}
 " CLEVER-F {{{
   let g:clever_f_smart_case        = 1
   let g:clever_f_fix_key_direction = 1
@@ -122,123 +122,98 @@ call plug#end()
     autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
   augroup END
 " }}}
-" DEFX Filetree browser {{{
-  nnoremap <silent>- :Defx<CR>
-  call defx#custom#option('_', {
-    \ 'columns': 'space:indent:mark:icons:filename:type',
-    \ 'winwidth': 50,
-    \ 'split': 'vertical',
-    \ 'direction': 'topleft',
-    \ 'show_ignored_files': 1,
-    \ 'resume': 1,
-    \ 'toggle': 1,
-    \ 'root_marker': ' ',
-    \ })
+" " DEFX Filetree browser {{{
+"   " nnoremap <silent>- :Defx<CR>
+"   call defx#custom#option('_', {
+"     \ 'columns': 'space:indent:mark:icons:filename:type',
+"     \ 'winwidth': 50,
+"     \ 'split': 'vertical',
+"     \ 'direction': 'topleft',
+"     \ 'show_ignored_files': 1,
+"     \ 'resume': 1,
+"     \ 'toggle': 1,
+"     \ 'root_marker': ' ',
+"     \ })
 
-  call defx#custom#column('filename', {
-    \ 'root_marker_highlight': 'Ignore',
-    \ })
+"   call defx#custom#column('filename', {
+"     \ 'root_marker_highlight': 'Ignore',
+"     \ })
 
-  let g:defx_icons_directory_symlink_icon  = '>'
-  let g:defx_icons_directory_icon          = '+'
-  let g:defx_icons_root_opened_tree_icon   = '-'
-  let g:defx_icons_nested_opened_tree_icon = '-'
-  let g:defx_icons_nested_closed_tree_icon = '+'
-  let g:defx_icons_enable_syntax_highlight = 1
-  let g:defx_icons_column_length           = 2
-  let g:defx_icons_mark_icon               = '*'
-  let g:defx_icons_copy_icon               = ''
-  let g:defx_icons_move_icon               = ''
-  let g:defx_icons_parent_icon             = ' '
-  let g:defx_icons_default_icon            = ''
+"   let g:defx_icons_directory_symlink_icon  = '>'
+"   let g:defx_icons_directory_icon          = '+'
+"   let g:defx_icons_root_opened_tree_icon   = '-'
+"   let g:defx_icons_nested_opened_tree_icon = '-'
+"   let g:defx_icons_nested_closed_tree_icon = '+'
+"   let g:defx_icons_enable_syntax_highlight = 1
+"   let g:defx_icons_column_length           = 2
+"   let g:defx_icons_mark_icon               = '*'
+"   let g:defx_icons_copy_icon               = ''
+"   let g:defx_icons_move_icon               = ''
+"   let g:defx_icons_parent_icon             = ' '
+"   let g:defx_icons_default_icon            = ''
 
-  augroup defx_init
-    autocmd!
-    autocmd BufWritePost * call defx#redraw() " Redraw on file change
-    autocmd FileType defx call s:defx_init()  " Load Settings
-  augroup END
+"   augroup defx_init
+"     autocmd!
+"     autocmd BufWritePost * call defx#redraw() " Redraw on file change
+"     autocmd FileType defx call s:defx_init()  " Load Settings
+"   augroup END
 
-  function! g:AddToQuickFix(context) abort
-    call setqflist(map(copy(a:context.targets), '{ "filename": v:val }'))
-    copen
-    cc
-  endfunction
+"   function! g:AddToQuickFix(context) abort
+"     call setqflist(map(copy(a:context.targets), '{ "filename": v:val }'))
+"     copen
+"     cc
+"   endfunction
 
-  function! s:defx_init()
-    setl nonumber
-    setl norelativenumber
-    setl listchars=
-    setl nofoldenable
-    setl foldmethod=manual
-    setl signcolumn=no
+"   function! s:defx_init()
+"     setl nonumber
+"     setl norelativenumber
+"     setl listchars=
+"     setl nofoldenable
+"     setl foldmethod=manual
+"     setl signcolumn=no
 
-    " Define Mappings
-    nnoremap <silent><nowait><buffer><expr> <esc>
-      \ defx#do_action('quit')
-    nnoremap <silent><nowait><buffer><expr> <CR>
-      \ defx#do_action('multi', ['drop', 'quit'])
-    nnoremap <silent><nowait><buffer><expr> .
-      \ defx#do_action('toggle_ignored_files')
-    nnoremap <silent><nowait><buffer><expr> c
-      \ defx#do_action('copy')
-    nnoremap <silent><nowait><buffer><expr> q
-      \ defx#do_action('quit')
-    nnoremap <silent><nowait><buffer><expr> m
-      \ defx#do_action('move')
-    nnoremap <silent><nowait><buffer><expr> p
-      \ defx#do_action('paste')
-    nnoremap <silent><nowait><buffer><expr> l
-      \ defx#do_action('open_tree')
-    nnoremap <silent><nowait><buffer><expr> h
-      \ defx#do_action('close_tree')
-    nnoremap <silent><nowait><buffer><expr> v
-      \ defx#do_action('multi', [['drop', 'vsplit'], 'quit'])
-    nnoremap <silent><nowait><buffer><expr> s
-      \ defx#do_action('multi', [['drop', 'split'], 'quit'])
-    nnoremap <silent><nowait><buffer><expr> t
-      \ defx#do_action('drop', 'tabedit')
-    nnoremap <silent><nowait><buffer><expr> n
-      \ defx#do_action('new_file')
-    nnoremap <silent><nowait><buffer><expr> dd
-      \ defx#do_action('remove')
-    nnoremap <silent><nowait><buffer><expr> r
-      \ defx#do_action('rename')
-    nnoremap <silent><buffer><expr> <TAB>
-      \ defx#do_action('toggle_select') . 'j'
-    nnoremap <silent><buffer><expr> <c-q>
-      \ defx#do_action('multi', [['call', 'AddToQuickFix'], 'quit'])
+"     " Define Mappings
+"     nnoremap <silent><nowait><buffer><expr> <esc>
+"       \ defx#do_action('quit')
+"     nnoremap <silent><nowait><buffer><expr> <CR>
+"       \ defx#do_action('multi', ['drop', 'quit'])
+"     nnoremap <silent><nowait><buffer><expr> .
+"       \ defx#do_action('toggle_ignored_files')
+"     nnoremap <silent><nowait><buffer><expr> c
+"       \ defx#do_action('copy')
+"     nnoremap <silent><nowait><buffer><expr> q
+"       \ defx#do_action('quit')
+"     nnoremap <silent><nowait><buffer><expr> m
+"       \ defx#do_action('move')
+"     nnoremap <silent><nowait><buffer><expr> p
+"       \ defx#do_action('paste')
+"     nnoremap <silent><nowait><buffer><expr> l
+"       \ defx#do_action('open_tree')
+"     nnoremap <silent><nowait><buffer><expr> h
+"       \ defx#do_action('close_tree')
+"     nnoremap <silent><nowait><buffer><expr> v
+"       \ defx#do_action('multi', [['drop', 'vsplit'], 'quit'])
+"     nnoremap <silent><nowait><buffer><expr> s
+"       \ defx#do_action('multi', [['drop', 'split'], 'quit'])
+"     nnoremap <silent><nowait><buffer><expr> t
+"       \ defx#do_action('drop', 'tabedit')
+"     nnoremap <silent><nowait><buffer><expr> n
+"       \ defx#do_action('new_file')
+"     nnoremap <silent><nowait><buffer><expr> dd
+"       \ defx#do_action('remove')
+"     nnoremap <silent><nowait><buffer><expr> r
+"       \ defx#do_action('rename')
+"     nnoremap <silent><buffer><expr> <TAB>
+"       \ defx#do_action('toggle_select') . 'j'
+"     nnoremap <silent><buffer><expr> <c-q>
+"       \ defx#do_action('multi', [['call', 'AddToQuickFix'], 'quit'])
 
-    " These get annoying in DEFX
-    nnoremap <silent><buffer><f7> <nop>
-    nnoremap <silent><buffer><f8> <nop>
-    nnoremap <silent><buffer><f9> <nop>
-  endfunction
+"     " These get annoying in DEFX
+"     nnoremap <silent><buffer><f7> <nop>
+"     nnoremap <silent><buffer><f8> <nop>
+"     nnoremap <silent><buffer><f9> <nop>
+"   endfunction
 " }}}
-  " DEOPLETE{{{
-    " Set completeopt to have a better completion experience
-    set completeopt=menuone,noinsert,noselect
-
-    " Remaps tab and shift-tab to select item in Pop up menu
-    inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-    inoremap <silent><expr> <TAB>
-          \ pumvisible() ? "\<C-n>" :
-          \ <SID>check_back_space() ? "\<TAB>" :
-          \ deoplete#manual_complete()
-
-    function! s:check_back_space() abort
-      let col = col('.') - 1
-      return !col || getline('.')[col - 1]  =~ '\s'
-    endfunction
-
-    let g:deoplete#enable_at_startup = 1
-    let g:deoplete#lsp#use_icons_for_candidates = v:true
-    call deoplete#custom#option({'sources': { '_': ['lsp', 'tags', 'buffer', 'syntax', 'file'] }})
-    call deoplete#custom#option('num_processes', -1)
-    call deoplete#custom#option('auto_complete_delay', 100)
-    call deoplete#custom#option('smart_case', v:true)
-    call deoplete#custom#option('min_pattern_length', 1)
-    call deoplete#custom#source('lsp', 'mark', '')
-  " }}}
 " ENDWISE {{{
   " See function: SMART ENTER FOR AUTOCOMPLETION
   let g:endwise_no_mappings = v:true
@@ -248,6 +223,10 @@ call plug#end()
 
   nnoremap <silent><c-g> :RG<cr>
   nnoremap <silent><c-f> :Files<CR>
+
+  " Search for current symbol under cursor
+  nnoremap <silent> <C-Space> yiw:Rg <C-r>"<CR>
+  vnoremap <silent> <C-Space> y:Rg <C-r>"<CR>
 
   command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--margin=1,2']}), <bang>0)
@@ -291,6 +270,287 @@ call plug#end()
 
   command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 "}}}
+  " GALAXY LINE {{{
+lua <<EOF
+  local buffer_not_empty = function()
+    if vim.fn.empty(vim.fn.expand("%:t")) ~= 1 then
+      return true
+    end
+    return false
+  end
+
+  local gl = require('galaxyline')
+  local condition = require('galaxyline.condition')
+  local gls = gl.section
+  gl.short_line_list = {'NvimTree', 'vista', 'dbui', 'packer'}
+  vim.api.nvim_command('hi GalaxyLineFillSection guibg=NONE')
+
+  local colors = {
+      bg          = '#282C34',
+      dark_bg     = '#2c323c',
+      yellow      = '#FFE082',
+      dark_yellow = '#FFCB6B',
+      cyan        = '#89DDF3',
+      green       = '#98c379',
+      orange      = '#FF8800',
+      purple      = '#C792EA',
+      blue        = '#569CD6',
+      red         = '#E06C75',
+      error_red   = '#F44747',
+      grey        = '#858585',
+  }
+
+  local mode_color = {
+      n = colors.green,
+      i = colors.blue,
+      v = colors.purple,
+      [''] = colors.purple,
+      V = colors.purple,
+      c = colors.red,
+      no = colors.blue,
+      s = colors.orange,
+      S = colors.orange,
+      [''] = colors.orange,
+      ic = colors.yellow,
+      R = colors.red,
+      Rv = colors.red,
+      cv = colors.blue,
+      ce = colors.blue,
+      r = colors.cyan,
+      rm = colors.cyan,
+      ['r?'] = colors.cyan,
+      ['!'] = colors.blue,
+      t = colors.blue
+  }
+
+  local mode_label = {
+      n      = 'NORMAL',
+      i      = 'INSERT',
+      v      = 'VISUAL',
+      [''] = 'V-BLCK',
+      V      = 'V-LINE',
+      c      = 'COMMND',
+      s      = 'SELECT',
+      S      = 'S-LINE',
+      [''] = 'S-BLCK',
+      R      = 'REPLCE',
+      Rv     = 'VIRTUL',
+      rm     = '--MORE',
+      t      = 'TERMNL'
+  }
+
+ gls.left[1] = {
+     Custom1 = {
+         provider = function()
+             vim.api.nvim_command('hi GalaxyCustom1 guibg=NONE guifg=' .. mode_color[vim.fn.mode()])
+             return "  "
+         end,
+         highlight = {colors.red, colors.bg}
+     }
+ }
+
+  gls.left[2] = {
+      ViMode = {
+          provider = function()
+              -- auto change color according the vim mode
+              vim.api.nvim_command('hi GalaxyViMode guifg=#0f0f0f guibg=' .. mode_color[vim.fn.mode()])
+              return " " .. mode_label[vim.fn.mode()] .. " "
+          end,
+         --  separator = ' ',
+         --  separator_highlight = function()
+         --    return {colors.red, colors.dark_bg}
+         --  end
+      }
+  }
+
+  print(vim.fn.getbufvar(0, 'ts'))
+  vim.fn.getbufvar(0, 'ts')
+
+  gls.left[3] = {
+      GitIcon = {
+          provider = function()
+              return '  '
+          end,
+          condition = condition.check_git_workspace,
+          separator = ' ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.orange, colors.bg}
+      }
+  }
+
+  gls.left[4] = {
+      GitBranch = {
+          provider = 'GitBranch',
+          condition = condition.check_git_workspace,
+          separator = ' ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.grey, colors.bg}
+      }
+  }
+
+  gls.left[5] = {
+      DiffAdd = {
+          provider = 'DiffAdd',
+          condition = condition.hide_in_width,
+          icon = '  ',
+          highlight = {colors.green, colors.bg}
+      }
+  }
+
+  gls.left[6] = {
+      DiffModified = {
+          provider = 'DiffModified',
+          condition = condition.hide_in_width,
+          icon = ' 柳',
+          highlight = {colors.blue, colors.bg}
+      }
+  }
+
+  gls.left[7] = {
+      DiffRemove = {
+          provider = 'DiffRemove',
+          condition = condition.hide_in_width,
+          icon = '  ',
+          highlight = {colors.red, colors.bg}
+      }
+  }
+
+ gls.left[8] = {
+     CustomL8 = {
+         provider = function()
+             vim.api.nvim_command('hi GalaxyCustomL8 guibg=NONE guifg=' .. colors.bg )
+             return " "
+         end,
+         highlight = {colors.red, colors.bg}
+     }
+ }
+
+ gls.mid[1] = {
+     Custom3 = {
+        provider = function()
+            vim.api.nvim_command('hi GalaxyCustom3 guibg=NONE guifg=' .. colors.bg )
+            return ""
+        end,
+        condition = buffer_not_empty,
+     }
+  }
+
+  gls.mid[2] = {
+    FileName = {
+        provider = 'FileName',
+        provider = function()
+          return vim.fn.expand("%")
+        end,
+        condition = buffer_not_empty,
+        highlight = {colors.grey, colors.bg},
+        -- separator = ' ',
+        -- separator_highlight = {'NONE', colors.bg},
+    }
+  }
+
+ gls.mid[3] = {
+     Custom4 = {
+        provider = function()
+            vim.api.nvim_command('hi GalaxyCustom4 guibg=NONE guifg=' .. colors.bg )
+            return ""
+        end,
+        condition = buffer_not_empty,
+     }
+  }
+
+ gls.right[1] = {
+     Custom5 = {
+        provider = function()
+            vim.api.nvim_command('hi GalaxyCustom5 guibg=NONE guifg=' .. colors.bg )
+            return ""
+        end,
+        condition = buffer_not_empty,
+     }
+  }
+  gls.right[2] = {DiagnosticError = {provider = 'DiagnosticError', icon = '  ', highlight = {colors.error_red, colors.bg} }}
+  gls.right[3] = {DiagnosticWarn  = {provider = 'DiagnosticWarn',  icon = '  ', highlight = {colors.yellow, colors.bg} }}
+  gls.right[4] = {DiagnosticHint  = {provider = 'DiagnosticHint',  icon = '  ', highlight = {colors.blue, colors.bg} }}
+  gls.right[5] = {DiagnosticInfo  = {provider = 'DiagnosticInfo',  icon = '  ', highlight = {colors.blue, colors.bg} }}
+
+  gls.right[6] = {
+      ShowLspClient = {
+          provider = 'GetLspClient',
+          condition = function()
+              local tbl = {['dashboard'] = true, [' '] = true}
+              if tbl[vim.bo.filetype] then return false end
+              return true
+          end,
+          icon = ' ',
+          highlight = {colors.grey, colors.bg}
+      }
+  }
+
+  gls.right[7] = {
+      LineInfo = {
+          provider = 'LineColumn',
+          separator = '  ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.grey, colors.bg}
+      }
+  }
+
+  gls.right[8] = {
+    PerCent = {
+        provider = 'LinePercent',
+        separator = ' ',
+        separator_highlight = {'NONE', colors.bg},
+        highlight = {colors.grey, colors.bg}
+    }
+}
+
+  gls.right[9] = {
+      Space = {
+          provider = function()
+              return ' '
+          end,
+          separator = ' ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.orange, colors.bg}
+      }
+  }
+
+ gls.right[10] = {
+     Custom2 = {
+         provider = function()
+             vim.api.nvim_command('hi GalaxyCustom2 guibg=NONE guifg=' .. colors.bg )
+             return " "
+         end,
+         highlight = {colors.red, colors.bg}
+     }
+ }
+
+  gls.short_line_left[1] = {
+      Space = {
+          provider = function()
+              return ' '
+          end,
+          separator = '',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.orange, colors.bg}
+      }
+  }
+
+  gls.short_line_left[2] = {
+      BufferType = {
+          provider = 'FileTypeName',
+          separator = '  ',
+          separator_highlight = {colors.grey, colors.bg},
+          highlight = {colors.grey, colors.bg}
+      }
+  }
+
+  gls.short_line_left[3] = {
+      SFileName = {provider = 'SFileName', condition = condition.buffer_not_empty, highlight = {colors.grey, colors.bg}}
+  }
+
+  gls.short_line_right[1] = {FileIcon = {provider = 'FileIcon', highlight = {colors.grey, colors.bg}, condition = buffer_not_empty }}
+EOF
+  " }}}
 " GITGUTTER {{{
 lua <<EOF
 require('gitsigns').setup {
@@ -319,6 +579,7 @@ EOF
   let g:gutentags_generate_on_missing      = 1
   let g:gutentags_generate_on_write        = 1
   let g:gutentags_generate_on_empty_buffer = 0
+  let g:gutentags_ctags_executable         = '/usr/local/bin/ctags'
 
   let g:gutentags_ctags_exclude = [
     \ '*.git', '*.svg', '*.hg',
@@ -383,6 +644,14 @@ lua <<EOF
   })
 EOF
   " }}}
+  " ILLUMINATE {{{
+    augroup illuminate_augroup
+      autocmd!
+      autocmd VimEnter * hi illuminatedCurWord cterm=italic gui=italic
+    augroup END
+
+    let g:Illuminate_ftblacklist = ['defx', 'NvimTree']
+  " }}}
 " MATCHUP{{{
   augroup matchup_matchparen_highlight
     autocmd!
@@ -394,27 +663,100 @@ EOF
   let g:matchup_matchparen_deferred  = 1
   let g:matchup_matchparen_offscreen = {}
 "}}}
+" NUMB {{{
+lua <<EOF
+require('numb').setup()
+EOF
+" }}}
+" NVIM COMPE {{{
+lua <<EOF
+require('compe').setup {
+  enabled = true;
+  autocomplete = true;
+  debug = false;
+  min_length = 1;
+  preselect = 'enable';
+  throttle_time = 80;
+  source_timeout = 200;
+  incomplete_delay = 400;
+  max_abbr_width = 100;
+  max_kind_width = 100;
+  max_menu_width = 100;
+  documentation = true;
+
+  source = {
+    path = { menu = '[P]' };
+    buffer = { menu = '[B]' };
+    calc = { menu = '[C]' };
+    tags = { menu = '[T]' };
+    nvim_lsp = { menu = '[L]' };
+    nvim_lua = false;
+    vsnip = false;
+  };
+}
+EOF
+
+set completeopt=menuone,noselect
+
+inoremap <silent><expr> <CR>  compe#confirm('<CR>')
+inoremap <silent><expr> <C-e> compe#close('<C-e>')
+
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ compe#complete()
+" }}}
   " NVIM TREESITTER {{{
 lua <<EOF
   require'nvim-treesitter.configs'.setup {
     ensure_installed = "all",
     highlight = {
       enable = true,
+      additional_vim_regex_highlighting = true,
       custom_captures = {
         ["variable.builtin"] = "PreProc",
       }
     },
     indent = {
-      enable = false
-    }
+      enable = true
+    },
   }
 EOF
   " }}}
   " NVIM LSP {{{
 lua <<EOF
-vim.lsp.set_log_level(0)
-
 local lspconfig = require "lspconfig"
+
+require('vim.lsp.protocol').CompletionItemKind = {
+    ' [text]';        -- = 1;
+    ' [method]';      -- = 2;
+    ' [function]';    -- = 3;
+    ' [constructor]'; -- = 4;
+    'ﰠ [field]';       -- = 5;
+    '𝒙 [variable]';    -- = 6;
+    ' [class]';       -- = 7;
+    ' [interface]';   -- = 8;
+    ' [module]';      -- = 9;
+    ' [property]';    -- = 10;
+    ' [unit]';        -- = 11;
+    ' [value]';       -- = 12;
+    ' [enum]';        -- = 13;
+    ' [key]';         -- = 14;
+    '﬌ [snippet]';     -- = 15;
+    ' [color]';       -- = 16;
+    ' [file]';        -- = 17;
+    ' [refrence]';    -- = 18;
+    ' [folder]';      -- = 19;
+    ' [enumMember]';  -- = 20;
+    ' [constant]';    -- = 21;
+    ' [struct]';      -- = 22;
+    ' [event]';       -- = 23;
+    ' [operator]';    -- = 24;
+    ' [typeParam]';   -- = 25;
+}
+
+require('lspsaga').init_lsp_saga()
 
 local map = function(mode, key, result, noremap)
     if noremap == nil then
@@ -423,136 +765,206 @@ local map = function(mode, key, result, noremap)
     vim.api.nvim_buf_set_keymap(0, mode, key, result, {noremap = noremap, silent = true})
 end
 
+_G.formatting = function()
+    vim.lsp.buf.formatting(vim.g[string.format("format_options_%s", vim.bo.filetype)] or {})
+    vim.cmd [[call TrimEndLines()]]
+    vim.cmd [[call TrimWhitespace()]]
+end
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+  vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false, underline = true, signs = true, }
+)
+
 vim.lsp.handlers["textDocument/formatting"] = function(err, _, result, _, bufnr)
     if err ~= nil or result == nil then
         return
     end
-
     if not vim.api.nvim_buf_get_option(bufnr, "modified") then
         local view = vim.fn.winsaveview()
         vim.lsp.util.apply_text_edits(result, bufnr)
         vim.fn.winrestview(view)
         if bufnr == vim.api.nvim_get_current_buf() then
-            vim.cmd("noautocmd :update")
-            vim.cmd("GitGutter")
+            vim.cmd [[noautocmd :update]]
+            -- vim.cmd [[GitGutter]]
         end
     end
 end
 
--- vim.lsp.handlers["textDocument/publishDiagnostics"] = function(...)
---     vim.lsp.with(
---         vim.lsp.diagnostic.on_publish_diagnostics,
---         {
---             underline = true,
---             update_in_insert = false
---         }
---     )(...)
---     pcall(vim.lsp.diagnostic.set_loclist, {open_loclist = false})
--- end
-
--- _G.formatting = function()
---     if not vim.g[string.format("format_disabled_%s", vim.bo.filetype)] then
---         vim.lsp.buf.formatting(vim.g[string.format("format_options_%s", vim.bo.filetype)] or {})
---     end
--- end
+-- Show Diagnostic Popup on cursor hover
+vim.cmd [[autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()]]
 
 local on_attach = function(client)
     -- Illuminate handles highlighting keywords
     require 'illuminate'.on_attach(client)
 
-    -- Handle formatting with EFM
-    client.resolved_capabilities.document_formatting = false
+    if client.resolved_capabilities.document_formatting then
+      -- vim.cmd [[augroup Format]]
+      -- vim.cmd [[autocmd! * <buffer>]]
+      -- vim.cmd [[autocmd BufWritePost <buffer> lua formatting()]]
+      -- vim.cmd [[augroup END]]
+
+      map("n", "<F8>", "<cmd>lua formatting()<cr>")
+    end
+
+    if client.resolved_capabilities.signature_help then
+      vim.cmd [[autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()]]
+    end
 
     if client.resolved_capabilities.goto_definition then
         map("n", "<C-]>", "<cmd>lua vim.lsp.buf.definition()<CR>")
     end
 
-    -- if client.resolved_capabilities.completion then
-    --     require "completion".on_attach(client)
-    --     map("i", "<c-n>", "<Plug>(completion_trigger)", false)
-    --     map("i", "<c-j>", "<Plug>(completion_next_source)", false)
-    --     map("i", "<c-k>", "<Plug>(completion_prev_source)", false)
-    -- end
-
     if client.resolved_capabilities.document_highlight then
-      vim.api.nvim_command [[autocmd CursorHold  <buffer> lua vim.lsp.buf.document_highlight()]]
-      vim.api.nvim_command [[autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()]]
-      vim.api.nvim_command [[autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()]]
+        vim.api.nvim_command [[autocmd CursorHold  <buffer> lua vim.lsp.buf.document_highlight()]]
+        vim.api.nvim_command [[autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()]]
+        vim.api.nvim_command [[autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()]]
     end
 
-    -- if client.resolved_capabilities.hover then
-    --     map("n", "<CR>", "<cmd>lua vim.lsp.buf.hover()<CR>")
-    -- end
-
     if client.resolved_capabilities.find_references then
-        map("n", "<Leader>*", ":call lists#ChangeActiveList('Quickfix')<CR>:lua vim.lsp.buf.references()<CR>")
+        map("n", "<Leader>*", "<cmd>lua vim.lsp.buf.references()<CR>")
     end
 
     if client.resolved_capabilities.rename then
-        map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>")
+        -- map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>")
+        map("n", "<leader>rn", "<cmd>lua require('lspsaga.rename').rename()<CR>")
+    end
+
+    if client.resolved_capabilities.code_action then
+        vim.cmd [[augroup CodeAction]]
+        vim.cmd [[autocmd! * <buffer>]]
+        map("n", ",", "<cmd>Lspsaga code_action<CR>")
+        vim.cmd [[augroup END]]
     end
 end
 
-local on_attach_efm = function(client)
-    vim.cmd [[augroup Format]]
-    vim.cmd [[autocmd! * <buffer>]]
-    vim.cmd [[autocmd BufWritePost <buffer> lua formatting()]]
-    vim.cmd [[augroup END]]
-
-    print("efm attached")
-end
-
 lspconfig.efm.setup {
-    on_attach = on_attach_efm,
+    on_attach = on_attach,
     init_options = { documentFormatting = true },
-    default_config = {
-      cmd = { "efm-langserver", "-c", [["$HOME/.config/efm-langserver/config.yaml"]] },
-    },
-    filetypes = {
-      "javascript",
-      "javascriptreact",
-      "javascript.jsx",
-      "typescript",
-      "typescript.tsx",
-      "typescriptreact",
-      "ruby"
+    settings = {
+      rootMarkers = {".git/"},
+      languages = {
+        javascript = {
+          lintCommand = "eslint_d -f unix --stdin --stdin-filename ${INPUT}",
+          lintIgnoreExitCode = true,
+          lintStdin = true,
+          lintFormats = {"%f:%l:%c: %m"}
+        },
+        eruby = {
+          lintCommand = "erb -x -T - | ruby -c",
+          lintStdin = true,
+          lintOffset = 1,
+          formatCommand = "htmlbeautifier"
+        },
+        ruby = {
+          lintCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion --stdin ${INPUT}",
+          lintIgnoreExitCode = true,
+          lintStdin = true,
+          lintFormats = {"%f:%l:%c: %m"},
+          formatCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion -A --stdin ${INPUT}",
+          formatIgnoreExitCode = true,
+          formatStdin = true
+        }
+      }
     }
 }
 
-lspconfig.solargraph.setup { on_attach = on_attach }
+lspconfig.solargraph.setup {
+  on_attach = on_attach,
+  init_options = { documentFormatting = false },
+  on_init = function(client)
+        client.config.flags = {}
+        if client.config.flags then
+          client.config.flags.allow_incremental_sync = true
+        end
+    end
+  }
 EOF
 
-let g:lsp_diagnostics_enabled = 1
-let g:lsp_signs_enabled       = 1
-let g:lsp_signs_error         = {'text': '!!'}
-let g:lsp_signs_warning       = {'text': '~>'}
-let g:lsp_highlights_enabled  = 1
+sign define LspDiagnosticsSignError       text= numhl=LspDiagnosticsSignError
+sign define LspDiagnosticsSignWarning     text= numhl=LspDiagnosticsSignWarning
+sign define LspDiagnosticsSignInformation text= numhl=LspDiagnosticsSignInformation
+sign define LspDiagnosticsSignHint        text= numhl=LspDiagnosticsSignHint
+  " }}}
+  " NVIM TREE {{{
+lua <<EOF
+local g = vim.g
 
-" Do not use virtual text
-let g:lsp_virtual_text_enabled = 0
+g.nvim_tree_side = "left"
+g.nvim_tree_width = 40
+g.nvim_tree_ignore = {".git", "node_modules", ".cache"}
+g.nvim_tree_auto_open = 0
+g.nvim_tree_auto_close = 1
+g.nvim_tree_quit_on_open = 1
+g.nvim_tree_follow = 1
+g.nvim_tree_indent_markers = 1
+g.nvim_tree_hide_dotfiles = 0
+g.nvim_tree_git_hl = 1
+g.nvim_tree_root_folder_modifier = ":~"
+g.nvim_tree_tab_open = 1
+g.nvim_tree_allow_resize = 1
 
-" echo a diagnostic message at cursor position
-let g:lsp_diagnostics_echo_cursor = 0
+g.nvim_tree_show_icons = {
+    git = 1,
+    folders = 1,
+    files = 1
+}
 
-" show diagnostic in floating window
-let g:lsp_diagnostics_float_cursor = 1
+g.nvim_tree_icons = {
+    default = " ",
+    symlink = " ",
+    git = {
+        unstaged = "✗",
+        staged = "✓",
+        unmerged = "",
+        renamed = "➜",
+        untracked = "★"
+    },
+    folder = {
+        default = "›",
+        open = "⌄",
+        symlink = ""
+    }
+}
 
-" whether to enable highlight a symbol and its references
-let g:lsp_highlight_references_enabled = 1
-let g:lsp_preview_max_width = 80
+local get_lua_cb = function(cb_name)
+    return string.format(":lua require'nvim-tree'.on_keypress('%s')<CR>", cb_name)
+end
 
-nnoremap <leader>gp :lua vim.lsp.diagnostic.goto_prev()<CR>
-nnoremap <leader>gn :lua vim.lsp.diagnostic.goto_next()<CR>
-nnoremap <leader>de :lua vim.lsp.buf.definition()<CR>
-nnoremap <leader>ff :lua vim.lsp.buf.formatting()<CR>
-nnoremap <leader>ho :lua vim.lsp.buf.hover()<CR>
-nnoremap <leader>rn :lua vim.lsp.buf.rename()<CR>
-nnoremap <leader>f :lua vim.lsp.buf.references()<CR>
-nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
+-- Mappings for nvimtree
+vim.api.nvim_set_keymap("n", "-", ":NvimTreeToggle<CR>", { noremap = true, silent = true })
+g.nvim_tree_bindings = {
+    ["<CR>"]           = get_lua_cb("edit"),
+    ["l"]              = get_lua_cb("edit"),
+    ["v"]              = get_lua_cb("vsplit"),
+    ["s"]              = get_lua_cb("split"),
+    ["t"]              = get_lua_cb("tabnew"),
+    ["h"]              = get_lua_cb("close_node"),
+    ["<Tab>"]          = get_lua_cb("preview"),
+    ["n"]              = get_lua_cb("create"),
+    ["dd"]             = get_lua_cb("remove"),
+    ["r"]              = get_lua_cb("rename"),
+    ["x"]              = get_lua_cb("cut"),
+    ["yy"]             = get_lua_cb("copy"),
+    ["p"]              = get_lua_cb("paste"),
+    ["-"]              = get_lua_cb("close"),
+    ["q"]              = get_lua_cb("close"),
+
+    ["<2-LeftMouse>"]  = get_lua_cb("edit"),
+    ["<2-RightMouse>"] = get_lua_cb("cd"),
+    ["<C-]>"]          = get_lua_cb("cd"),
+    ["I"]              = get_lua_cb("toggle_ignored"),
+    ["H"]              = get_lua_cb("toggle_dotfiles"),
+    ["R"]              = get_lua_cb("refresh"),
+    ["<C-r>"]          = get_lua_cb("full_rename"),
+    ["[c"]             = get_lua_cb("prev_git_item"),
+    ["]c"]             = get_lua_cb("next_git_item")
+}
+EOF
   " }}}
   " TURBUX (Test Runner) {{{
     let g:no_turbux_mappings = 1
-    nnoremap <silent><leader>m :call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
+      nnoremap <silent><leader>m :call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
+
     nnoremap <silent><leader>M :call SendTestToTmux(expand('%'))<CR>
 
     let g:turbux_custom_runner = 'TurbuxCustomRunner' " default: (unset)
@@ -563,9 +975,8 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     endfunction
   " }}}
 " }}}
-
 " General Settings {{{
-  filetype plugin indent on
+  filetype plugin on
   set cursorline            " Highlight cursor line
   set number                " Show line number
   set relativenumber        " Show Relative Line Numbers
@@ -576,7 +987,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   set shiftwidth=2
   set expandtab
   set shiftround            " Use multiple of shiftwidth when indenting with > and <
-  set smartindent
+  " set smartindent
   set incsearch             " Show matches While searching
   set inccommand=split      " Show substitutions live
   set ignorecase            " ignore case on search
@@ -652,7 +1063,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     endif
   " }}}
 " }}}
-
 " AutoCommands {{{
 " AUTORELOAD CHANGED FILES {{{
     set autoread
@@ -717,15 +1127,13 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     augroup END
   " }}}
   " REMOVE TRAILING WHITESPACE && EMPTY LINES ON SAVE {{{
-    augroup stripWhitespaceOnSave
-      autocmd!
-      " autocmd BufWritePre * :%s/\s\+$//e
-      autocmd BufWritePre * :call TrimWhitespace()
-      autocmd BufWritePre * :call TrimEndLines()
-    augroup END
+    " augroup stripWhitespaceOnSave
+      " autocmd!
+      " autocmd BufWritePre * :call TrimWhitespace()
+      " autocmd BufWritePre * :call TrimEndLines()
+    " augroup END
   " }}}
 " }}}
-
 " Functions {{{
   " RESIZE MODE {{{
     let g:resize_active=0
@@ -786,11 +1194,23 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     endfunction
 
     function! CloseTerminalDrawer() abort
+      if g:terminal_drawer.state == 'closed'
+        " Don't closed terminal if already closed
+        return
+      endif
+
       hide
       set laststatus=2 showmode ruler
       let g:terminal_drawer.state = 'closed'
       stopinsert
     endfunction
+
+    function! SmartCloseTerminal() abort
+      if win_gotoid(g:terminal_drawer.win_id)
+        call CloseTerminalDrawer()
+      endif
+    endfunction
+
 
     function! OpenTerminalDrawer() abort
       if g:terminal_drawer.state == 'open'
@@ -840,6 +1260,13 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
       call nvim_open_win(nvim_create_buf(v:false, v:true), v:true, opts)
       call InvertBackground()
       autocmd BufWipeout <buffer> call ResetBackground()
+    endfunction
+  " }}}
+  " CHECK BACK SPACE {{{
+    " Used for Autocompletion <TAB>
+    function! s:check_back_space() abort
+      let col = col('.') - 1
+      return !col || getline('.')[col - 1]  =~ '\s'
     endfunction
   " }}}
   " TOGGLE TERMINAL && ON TERMINAL EXIT {{{
@@ -935,7 +1362,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
     endfunction
   " }}}
 " }}}
-
 " Key Mappings {{{
   let mapleader = "\\"
 
@@ -943,6 +1369,11 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <leader>pu :PlugUpdate<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
+
+  " ERB Stuff
+  inoremap <leader>5 <%  %><left><left><left>
+  inoremap <leader>% <%=  %><left><left><left>
+  inoremap <leader>e <% end %>
 
   " Fast Find and Replace
   nnoremap R :%s/\<<C-r><C-w>\>//g<Left><Left><C-r><C-w>
@@ -953,9 +1384,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
 
   " Open Last Buffer
   nnoremap <Leader><Leader> <C-^>
-
-  " GoBuffer List
-  nnoremap gb :ls<CR>:b<Space>
 
   " Play Last Macro with Q
   nnoremap Q @@
@@ -975,8 +1403,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   " rebind 'i' to do a smart-indent if its a blank line
   nnoremap <expr> i SmartInsert()
 
-  nnoremap <silent><f7> :bprevious<cr>
-  nnoremap <silent><f9> :bnext<cr>
 
   " " Change text without putting the text into register,
   " nnoremap c "_c
@@ -1015,10 +1441,12 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   noremap L g_
 
   " Close split using c-q, close pane keeping split with c-w
-  " plugin: bufkill
-  noremap  <C-q> :bw<Cr>
-  noremap  <C-w> :BW<Cr>
+  noremap  <C-q> :call SmartCloseTerminal()<cr>:bw<Cr>
+  noremap  <C-w> :BufferClose<Cr>
   noremap  <C-e> <C-w>c<Cr>
+
+  nnoremap <silent><f7> :BufferPrevious<cr>
+  nnoremap <silent><f9> :BufferNext<cr>
 
   " buffer splits
   nmap <silent><nowait><leader>sh  :leftabove  vnew<CR>:bprev<CR>:call RemoveEmptyBuffers()<CR>
@@ -1036,7 +1464,7 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <silent> * *zz
   nnoremap <silent> # #zz
 
-  " use tab and shift tab to indent and de-indent code
+  " use tab and shift tab to indent and outdent code
   nnoremap <Tab>   >>
   nnoremap <S-Tab> <<
   vnoremap <Tab>   >><Esc>gv
@@ -1050,6 +1478,10 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   tnoremap <C-j> <C-\><C-n><C-w>j
   tnoremap <C-k> <C-\><C-n><C-w>k
   tnoremap <C-l> <C-\><C-n><C-w>l
+
+  " If you're in the terminal and start repeating 'j' or 'k', you're focused on the wrong window
+  tmap jj <C-k>
+  tmap kk <C-k>
 
   " Moves selected Lines up and Down with alt-j/k
   nnoremap <silent> ∆ :m .+1<CR>==
@@ -1071,26 +1503,6 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   nnoremap <silent> <S-Left>  :lpfile<CR>
   nnoremap <silent> <S-Right> :lnfile<CR>
 " }}}
-
-" Language Settings {{{
-  " Ruby {{{
-    let ruby_operators               = 1
-    let ruby_line_continuation_error = 1
-    let ruby_pseudo_operators        = 1
-    let ruby_space_errors            = 1
-    let ruby_global_variable_error   = 1
-    let ruby_spellcheck_strings      = 1
-
-    augroup setRubyFiletype
-      autocmd!
-      autocmd BufNewFile,BufRead *.rb set syntax=ruby
-    augroup END
-  " }}}
-  " Slim {{{
-    autocmd BufNewFile,BufRead *.slim setlocal filetype=slim
-  " }}}
-" }}}
-
 " Colorscheme & Highlights {{{
   if (has("autocmd") && !has("gui_running"))
     augroup colorset
@@ -1148,4 +1560,44 @@ nnoremap <leader>ds :lua vim.lsp.buf.document_symbol()<CR>
   highlight DiffAdd    guifg=#98c379 guibg=NONE gui=NONE
   highlight DiffChange guifg=#fdde81 guibg=NONE gui=NONE
   highlight DiffDelete guifg=#e06c75 guibg=NONE gui=NONE
+
+  " LSP Virtual Text
+  highlight LspDiagnosticsVirtualTextError       guifg=#E06C75 ctermfg=Red
+  highlight LspDiagnosticsVirtualTextWarning     guifg=#ffe082 ctermfg=Yellow
+  highlight LspDiagnosticsVirtualTextHint        guifg=#89DDF3 ctermfg=White
+  highlight LspDiagnosticsVirtualTextInformation guifg=#89DDF3 ctermfg=White
+
+  " Underline the offending code
+  highlight LspDiagnosticsUnderlineError       guifg=NONE ctermfg=NONE cterm=underline gui=bold
+  highlight LspDiagnosticsUnderlineWarning     guifg=NONE ctermfg=NONE cterm=underline gui=bold
+  highlight LspDiagnosticsUnderlineHint        guifg=NONE ctermfg=NONE cterm=underline gui=bold
+  highlight LspDiagnosticsUnderlineInformation guifg=NONE ctermfg=NONE cterm=underline gui=bold
+
+  " LSP Sign Column
+  highlight LspDiagnosticsSignInformation guifg=#82AAFF
+  highlight LspDiagnosticsSignWarning     guifg=#FFCB6B
+
+  " BarBar
+  highlight BufferCurrent       guibg=#98c379 guifg=#2a323c
+  highlight BufferCurrentIcon   guibg=#98c379
+  highlight BufferCurrentIndex  guibg=#98c379
+  highlight BufferCurrentMod    guibg=#98c379 guifg=#a3212c
+  highlight BufferCurrentSign   guibg=#98c379 guifg=#2c323c
+  highlight BufferCurrentTarget guibg=#98c379 gui=BOLD
+
+  highlight BufferVisible       guibg=#46554f guifg=#9a9c9e
+  highlight BufferVisibleIcon   guibg=#46554f
+  highlight BufferVisibleIndex  guibg=#46554f
+  highlight BufferVisibleMod    guibg=#46554f guifg=#a3212c gui=italic
+  highlight BufferVisibleSign   guibg=#46554f guifg=#2c323c
+  highlight BufferVisibleTarget guibg=#46554f gui=BOLD
+
+  highlight BufferInactive       guibg=#323944 guifg=#7a7c7e
+  highlight BufferInactiveIcon   guibg=#323944
+  highlight BufferInactiveIndex  guibg=#323944
+  highlight BufferInactiveMod    guibg=#323944 guifg=#E06C75
+  highlight BufferInactiveSign   guibg=#323944 guifg=#2c323c
+  highlight BufferInactiveTarget guibg=#323944
+
+  " galaxyline
 " }}}

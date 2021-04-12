@@ -1,1 +1,1 @@
-/home/ubuntu/.config/zsh/zshrc
+.config/zsh/zshrc
