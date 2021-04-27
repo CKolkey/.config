@@ -1,0 +1,20 @@
+name = "Cameron Kolkey"
+downloads-dir = "/Users/cameron/Downloads"
+signature = """
+  Best,
+  Cameron
+"""
+
+[gmail]
+default = true
+email = "alleyria@gmail.com"
+
+imap-host = "imap.gmail.com"
+imap-port = 993
+imap-login = "alleyria@gmail.com"
+imap-passwd-cmd = "bw get password 628ae6e4-ac64-4c96-acf5-ad1600cc82c0"
+
+smtp-host = "smtp.gmail.com"
+smtp-port = 465
+smtp-login = "alleyria@gmail.com"
+smtp-passwd-cmd = "bw get password 628ae6e4-ac64-4c96-acf5-ad1600cc82c0"
