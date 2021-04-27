@@ -1,7 +1,7 @@
 # User configuration
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export EDITOR='/usr/local/bin/nvim'
+export EDITOR='nvim-client -f'
 export ZSH=$HOME/.oh-my-zsh
 export UPDATE_ZSH_DAYS=1
 export TERM=xterm-256color
@@ -74,6 +74,12 @@ if [ $(date +'%j') != $updated_at ]; then
 else
   compinit -C -i
 fi
+
+# Use Homebrews SSL for ruby
+export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
+
+# Bitwarden
+export BW_SESSION="kPScZ7cZOfPL1RmihVMAQiK6Yk0OW6sJ9G/qhr7GN/KGvHs9Otnd3u7p1FwjDnzVMB0z7rZefG03JbPexTLtnA=="
 
 # Autocompletion and Kitty
 zmodload -i zsh/complist
