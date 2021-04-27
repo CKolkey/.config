@@ -34,7 +34,6 @@ call plug#begin()
 
   Plug 'tommcdo/vim-lion'                                       " Align characters across lines
   Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
-  " Plug 'dense-analysis/ale'                                     " Async Linting and Fixing
   Plug 'Krasjet/auto.pairs'                                     " Autoclose Parens intelligently
   Plug 'rhysd/clever-f.vim'                                     " Improvement to 'f' and 'F', 't', and 'T'
   Plug 'jgdavey/vim-turbux'                                     " Send spec's to a second TMUX pane
@@ -43,10 +42,10 @@ call plug#begin()
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
   Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
-  " Plug 'kristijanhusak/defx-icons'                              " Icons for File Tree Browser
   Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
   Plug 'junegunn/fzf.vim'
+  Plug 'soywod/himalaya', {'rtp': 'vim'}                        " Mail client integration
 
   Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
   Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
@@ -59,13 +58,11 @@ call plug#begin()
   Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
   Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
-  " Plug 'Shougo/defx.nvim', { 'do': ':UpdateRemotePlugins' }     " File tree Browser
-  " Plug 'Shougo/neco-syntax'                                     " Autocomplete Source for Syntax
-
   if has('nvim-0.5')
     Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+    Plug 'code-biscuits/nvim-biscuits'                          " Adds Closing biscuit
     Plug 'neovim/nvim-lspconfig'
-    Plug 'RRethy/vim-illuminate'                                " Highlight the same word as under cursor
+    " Plug 'yamatsum/nvim-cursorline'                             " Highlight the same word as under cursor
     Plug 'glepnir/indent-guides.nvim'                           " Indentation Guides
     Plug 'nvim-lua/plenary.nvim'                                " Utilities for LUA
     Plug 'lewis6991/gitsigns.nvim'                              " Gitgutter
@@ -76,41 +73,31 @@ call plug#begin()
     Plug 'glepnir/galaxyline.nvim', {'branch': 'main'}          " StatusLine
     Plug 'nacro90/numb.nvim'                                    " Peek line when typing :{number}
     Plug 'glepnir/lspsaga.nvim'                                 " Code Actions for LSP
+    Plug 'stsewd/fzf-checkout.vim'                              " fzf + git checkout
   endif
 call plug#end()
 " }}}
 " Plugin Settings & Mappings POST {{{
-" " ALE{{{
-  " from: https://github.com/fohte/rubocop-daemon
-  " nnoremap <silent><f8> :ALEFix<cr>
-
-  " let g:ale_ruby_rubocop_executable       = 'rubocop-daemon-wrapper'
-  " let g:ale_ruby_rubocop_auto_correct_all = 1
-  " let g:ale_javascript_eslint_executable  = 'eslint_d'
-  " let g:ale_javascript_eslint_use_global  = 1
-
-  " let g:ale_linters = {
-  "   \   'javascript': ['eslint'],
-  "   \   'ruby':       ['rubocop'],
-  "   \}
-
-  " let g:ale_fixers = {
-  "   \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-  "   \   'ruby':       ['rubocop'],
-  "   \   'javascript': ['eslint'],
-  "   \}
-
-  " let g:ale_fix_on_save        = 0
-  " let g:ale_linters_explicit   = 1
-  " let g:ale_sign_column_always = 1
-  " let g:ale_sign_error         = '!!'
-  " let g:ale_sign_warning       = '~>'
-  " let g:ale_sign_highlight_linenrs = 1
-"}}}
   " BARBAR {{{
   let bufferline = get(g:, 'bufferline', {})
   let bufferline.maximum_padding = 2
-  let bufferline.icon_close_tab_modified = '!'
+  " let bufferline.icon_close_tab_modified = '!'
+  " }}}
+  " CODE BISCUITS {{{
+lua <<EOF
+
+require('nvim-biscuits').setup({
+  default_config = {
+    max_length = 80,
+    min_distance = 5,
+    prefix_string = " --"
+  },
+  language_config = {
+    ruby = { prefix_string = " # " },
+    javascript = { prefix_string = " //" }
+  }
+})
+EOF
   " }}}
 " CLEVER-F {{{
   let g:clever_f_smart_case        = 1
@@ -122,111 +109,19 @@ call plug#end()
     autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
   augroup END
 " }}}
-" " DEFX Filetree browser {{{
-"   " nnoremap <silent>- :Defx<CR>
-"   call defx#custom#option('_', {
-"     \ 'columns': 'space:indent:mark:icons:filename:type',
-"     \ 'winwidth': 50,
-"     \ 'split': 'vertical',
-"     \ 'direction': 'topleft',
-"     \ 'show_ignored_files': 1,
-"     \ 'resume': 1,
-"     \ 'toggle': 1,
-"     \ 'root_marker': ' ',
-"     \ })
-
-"   call defx#custom#column('filename', {
-"     \ 'root_marker_highlight': 'Ignore',
-"     \ })
-
-"   let g:defx_icons_directory_symlink_icon  = '>'
-"   let g:defx_icons_directory_icon          = '+'
-"   let g:defx_icons_root_opened_tree_icon   = '-'
-"   let g:defx_icons_nested_opened_tree_icon = '-'
-"   let g:defx_icons_nested_closed_tree_icon = '+'
-"   let g:defx_icons_enable_syntax_highlight = 1
-"   let g:defx_icons_column_length           = 2
-"   let g:defx_icons_mark_icon               = '*'
-"   let g:defx_icons_copy_icon               = ''
-"   let g:defx_icons_move_icon               = ''
-"   let g:defx_icons_parent_icon             = ' '
-"   let g:defx_icons_default_icon            = ''
-
-"   augroup defx_init
-"     autocmd!
-"     autocmd BufWritePost * call defx#redraw() " Redraw on file change
-"     autocmd FileType defx call s:defx_init()  " Load Settings
-"   augroup END
-
-"   function! g:AddToQuickFix(context) abort
-"     call setqflist(map(copy(a:context.targets), '{ "filename": v:val }'))
-"     copen
-"     cc
-"   endfunction
-
-"   function! s:defx_init()
-"     setl nonumber
-"     setl norelativenumber
-"     setl listchars=
-"     setl nofoldenable
-"     setl foldmethod=manual
-"     setl signcolumn=no
-
-"     " Define Mappings
-"     nnoremap <silent><nowait><buffer><expr> <esc>
-"       \ defx#do_action('quit')
-"     nnoremap <silent><nowait><buffer><expr> <CR>
-"       \ defx#do_action('multi', ['drop', 'quit'])
-"     nnoremap <silent><nowait><buffer><expr> .
-"       \ defx#do_action('toggle_ignored_files')
-"     nnoremap <silent><nowait><buffer><expr> c
-"       \ defx#do_action('copy')
-"     nnoremap <silent><nowait><buffer><expr> q
-"       \ defx#do_action('quit')
-"     nnoremap <silent><nowait><buffer><expr> m
-"       \ defx#do_action('move')
-"     nnoremap <silent><nowait><buffer><expr> p
-"       \ defx#do_action('paste')
-"     nnoremap <silent><nowait><buffer><expr> l
-"       \ defx#do_action('open_tree')
-"     nnoremap <silent><nowait><buffer><expr> h
-"       \ defx#do_action('close_tree')
-"     nnoremap <silent><nowait><buffer><expr> v
-"       \ defx#do_action('multi', [['drop', 'vsplit'], 'quit'])
-"     nnoremap <silent><nowait><buffer><expr> s
-"       \ defx#do_action('multi', [['drop', 'split'], 'quit'])
-"     nnoremap <silent><nowait><buffer><expr> t
-"       \ defx#do_action('drop', 'tabedit')
-"     nnoremap <silent><nowait><buffer><expr> n
-"       \ defx#do_action('new_file')
-"     nnoremap <silent><nowait><buffer><expr> dd
-"       \ defx#do_action('remove')
-"     nnoremap <silent><nowait><buffer><expr> r
-"       \ defx#do_action('rename')
-"     nnoremap <silent><buffer><expr> <TAB>
-"       \ defx#do_action('toggle_select') . 'j'
-"     nnoremap <silent><buffer><expr> <c-q>
-"       \ defx#do_action('multi', [['call', 'AddToQuickFix'], 'quit'])
-
-"     " These get annoying in DEFX
-"     nnoremap <silent><buffer><f7> <nop>
-"     nnoremap <silent><buffer><f8> <nop>
-"     nnoremap <silent><buffer><f9> <nop>
-"   endfunction
-" }}}
 " ENDWISE {{{
   " See function: SMART ENTER FOR AUTOCOMPLETION
   let g:endwise_no_mappings = v:true
 " }}}
 " FZF{{{
-  let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
+  " let $FZF_DEFAULT_COMMAND = 'rg --files --no-ignore-vcs --hidden -g "!{node_modules,.git,tmp,storage}"'
 
   nnoremap <silent><c-g> :RG<cr>
   nnoremap <silent><c-f> :Files<CR>
 
   " Search for current symbol under cursor
-  nnoremap <silent> <C-Space> yiw:Rg <C-r>"<CR>
-  vnoremap <silent> <C-Space> y:Rg <C-r>"<CR>
+  nnoremap <silent> <C-Space> yiw:RG <C-r>"<CR>
+  vnoremap <silent> <C-Space> y:RG <C-r>"<CR>
 
   command! -bang -nargs=? -complete=dir Files
   \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--margin=1,2']}), <bang>0)
@@ -279,12 +174,20 @@ lua <<EOF
     return false
   end
 
+  local buffer_empty = function()
+    if vim.fn.empty(vim.fn.expand("%:t")) ~= 1 then
+      return false
+    end
+    return true
+  end
+
   local gl = require('galaxyline')
   local condition = require('galaxyline.condition')
   local gls = gl.section
-  gl.short_line_list = {'NvimTree', 'vista', 'dbui', 'packer'}
+  gl.short_line_list = {'NvimTree', 'vista', 'dbui', 'packer', 'QF', "quickfix"}
   vim.api.nvim_command('hi GalaxyLineFillSection guibg=NONE')
 
+  -- {{{ COLORS & LABELS
   local colors = {
       bg          = '#282C34',
       dark_bg     = '#2c323c',
@@ -306,7 +209,7 @@ lua <<EOF
       v = colors.purple,
       [''] = colors.purple,
       V = colors.purple,
-      c = colors.red,
+      c = colors.dark_yellow,
       no = colors.blue,
       s = colors.orange,
       S = colors.orange,
@@ -338,12 +241,13 @@ lua <<EOF
       rm     = '--MORE',
       t      = 'TERMNL'
   }
-
+  -- }}}
+  -- LEFT {{{
  gls.left[1] = {
      Custom1 = {
          provider = function()
              vim.api.nvim_command('hi GalaxyCustom1 guibg=NONE guifg=' .. mode_color[vim.fn.mode()])
-             return "  "
+             return " "
          end,
          highlight = {colors.red, colors.bg}
      }
@@ -356,10 +260,6 @@ lua <<EOF
               vim.api.nvim_command('hi GalaxyViMode guifg=#0f0f0f guibg=' .. mode_color[vim.fn.mode()])
               return " " .. mode_label[vim.fn.mode()] .. " "
           end,
-         --  separator = ' ',
-         --  separator_highlight = function()
-         --    return {colors.red, colors.dark_bg}
-         --  end
       }
   }
 
@@ -367,9 +267,34 @@ lua <<EOF
   vim.fn.getbufvar(0, 'ts')
 
   gls.left[3] = {
+      FilePresentIcon = {
+          provider = function()
+              return '   '
+          end,
+          condition = buffer_not_empty,
+          separator = ' ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.purple, colors.bg}
+      }
+  }
+
+  gls.left[4] = {
+    FileName = {
+        provider = 'FileName',
+        provider = function()
+          return vim.fn.expand("%")
+        end,
+        condition = buffer_not_empty,
+        separator = '',
+        separator_highlight = {'NONE', colors.bg},
+        highlight = {colors.grey, colors.bg},
+    }
+  }
+
+  gls.left[5] = {
       GitIcon = {
           provider = function()
-              return '  '
+              return '   '
           end,
           condition = condition.check_git_workspace,
           separator = ' ',
@@ -378,7 +303,7 @@ lua <<EOF
       }
   }
 
-  gls.left[4] = {
+  gls.left[6] = {
       GitBranch = {
           provider = 'GitBranch',
           condition = condition.check_git_workspace,
@@ -388,7 +313,7 @@ lua <<EOF
       }
   }
 
-  gls.left[5] = {
+  gls.left[7] = {
       DiffAdd = {
           provider = 'DiffAdd',
           condition = condition.hide_in_width,
@@ -397,7 +322,7 @@ lua <<EOF
       }
   }
 
-  gls.left[6] = {
+  gls.left[8] = {
       DiffModified = {
           provider = 'DiffModified',
           condition = condition.hide_in_width,
@@ -406,7 +331,7 @@ lua <<EOF
       }
   }
 
-  gls.left[7] = {
+  gls.left[9] = {
       DiffRemove = {
           provider = 'DiffRemove',
           condition = condition.hide_in_width,
@@ -414,57 +339,22 @@ lua <<EOF
           highlight = {colors.red, colors.bg}
       }
   }
-
- gls.left[8] = {
-     CustomL8 = {
-         provider = function()
-             vim.api.nvim_command('hi GalaxyCustomL8 guibg=NONE guifg=' .. colors.bg )
-             return " "
-         end,
-         highlight = {colors.red, colors.bg}
-     }
- }
-
- gls.mid[1] = {
-     Custom3 = {
-        provider = function()
-            vim.api.nvim_command('hi GalaxyCustom3 guibg=NONE guifg=' .. colors.bg )
-            return ""
-        end,
-        condition = buffer_not_empty,
-     }
-  }
-
-  gls.mid[2] = {
-    FileName = {
-        provider = 'FileName',
-        provider = function()
-          return vim.fn.expand("%")
-        end,
-        condition = buffer_not_empty,
-        highlight = {colors.grey, colors.bg},
-        -- separator = ' ',
-        -- separator_highlight = {'NONE', colors.bg},
-    }
-  }
-
- gls.mid[3] = {
+ gls.left[10] = {
      Custom4 = {
         provider = function()
             vim.api.nvim_command('hi GalaxyCustom4 guibg=NONE guifg=' .. colors.bg )
             return ""
         end,
-        condition = buffer_not_empty,
      }
   }
-
+ -- }}}
+  -- RIGHT {{{
  gls.right[1] = {
      Custom5 = {
         provider = function()
             vim.api.nvim_command('hi GalaxyCustom5 guibg=NONE guifg=' .. colors.bg )
             return ""
         end,
-        condition = buffer_not_empty,
      }
   }
   gls.right[2] = {DiagnosticError = {provider = 'DiagnosticError', icon = '  ', highlight = {colors.error_red, colors.bg} }}
@@ -472,20 +362,41 @@ lua <<EOF
   gls.right[4] = {DiagnosticHint  = {provider = 'DiagnosticHint',  icon = '  ', highlight = {colors.blue, colors.bg} }}
   gls.right[5] = {DiagnosticInfo  = {provider = 'DiagnosticInfo',  icon = '  ', highlight = {colors.blue, colors.bg} }}
 
+  local connected_to_lsp = function()
+    local tbl = {['dashboard'] = true, [' '] = true}
+
+    if tbl[vim.bo.filetype] then
+      return false
+    end
+
+    if buffer_empty() then
+      return false
+    end
+
+    return true
+  end
+
   gls.right[6] = {
-      ShowLspClient = {
-          provider = 'GetLspClient',
-          condition = function()
-              local tbl = {['dashboard'] = true, [' '] = true}
-              if tbl[vim.bo.filetype] then return false end
-              return true
+      ShowLspClientIcon = {
+          provider = function()
+              return ' '
           end,
-          icon = ' ',
-          highlight = {colors.grey, colors.bg}
+          condition = connected_to_lsp,
+          separator = ' ',
+          separator_highlight = {'NONE', colors.bg},
+          highlight = {colors.green, colors.bg}
       }
   }
 
   gls.right[7] = {
+      ShowLspClient = {
+          provider = 'GetLspClient',
+          condition = connected_to_lsp,
+          highlight = {colors.grey, colors.bg}
+      }
+  }
+
+  gls.right[8] = {
       LineInfo = {
           provider = 'LineColumn',
           separator = '  ',
@@ -494,7 +405,7 @@ lua <<EOF
       }
   }
 
-  gls.right[8] = {
+  gls.right[9] = {
     PerCent = {
         provider = 'LinePercent',
         separator = ' ',
@@ -503,7 +414,7 @@ lua <<EOF
     }
 }
 
-  gls.right[9] = {
+  gls.right[10] = {
       Space = {
           provider = function()
               return ' '
@@ -514,16 +425,17 @@ lua <<EOF
       }
   }
 
- gls.right[10] = {
+ gls.right[11] = {
      Custom2 = {
          provider = function()
              vim.api.nvim_command('hi GalaxyCustom2 guibg=NONE guifg=' .. colors.bg )
-             return " "
+             return ""
          end,
          highlight = {colors.red, colors.bg}
      }
  }
-
+  -- }}}
+  -- SHORT LINE {{{
   gls.short_line_left[1] = {
       Space = {
           provider = function()
@@ -549,9 +461,10 @@ lua <<EOF
   }
 
   gls.short_line_right[1] = {FileIcon = {provider = 'FileIcon', highlight = {colors.grey, colors.bg}, condition = buffer_not_empty }}
+  -- }}}
 EOF
   " }}}
-" GITGUTTER {{{
+" GITSIGNS {{{
 lua <<EOF
 require('gitsigns').setup {
   signs = {
@@ -645,12 +558,14 @@ lua <<EOF
 EOF
   " }}}
   " ILLUMINATE {{{
-    augroup illuminate_augroup
-      autocmd!
-      autocmd VimEnter * hi illuminatedCurWord cterm=italic gui=italic
-    augroup END
+    " augroup illuminate_augroup
+    "   autocmd!
+    "   autocmd VimEnter * hi illuminatedCurWord gui=bold
+    "   autocmd VimEnter * hi illuminatedWord    gui=bold
+    " augroup END
 
-    let g:Illuminate_ftblacklist = ['defx', 'NvimTree']
+    " let g:Illuminate_ftblacklist = ['defx', 'NvimTree']
+    " let g:Illuminate_delay = 5000
   " }}}
 " MATCHUP{{{
   augroup matchup_matchparen_highlight
@@ -795,7 +710,7 @@ vim.cmd [[autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()]]
 
 local on_attach = function(client)
     -- Illuminate handles highlighting keywords
-    require 'illuminate'.on_attach(client)
+    -- require 'illuminate'.on_attach(client)
 
     if client.resolved_capabilities.document_formatting then
       -- vim.cmd [[augroup Format]]
@@ -803,7 +718,7 @@ local on_attach = function(client)
       -- vim.cmd [[autocmd BufWritePost <buffer> lua formatting()]]
       -- vim.cmd [[augroup END]]
 
-      map("n", "<F8>", "<cmd>lua formatting()<cr>")
+      map("n", "<F8>", "<cmd>update<cr><cmd>lua formatting()<cr>")
     end
 
     if client.resolved_capabilities.signature_help then
@@ -890,7 +805,7 @@ lua <<EOF
 local g = vim.g
 
 g.nvim_tree_side = "left"
-g.nvim_tree_width = 40
+g.nvim_tree_width = 30
 g.nvim_tree_ignore = {".git", "node_modules", ".cache"}
 g.nvim_tree_auto_open = 0
 g.nvim_tree_auto_close = 1
@@ -1124,6 +1039,8 @@ EOF
 
       " Resize QF buffer on open
       autocmd BufWinEnter quickfix execute('resize ' . min([10, len(getqflist())]))
+      autocmd BufWinEnter quickfix lua require("galaxyline").disable_galaxyline()
+      autocmd BufWinEnter quickfix setl nobuflisted noshowmode noruler laststatus=0 noshowcmd
     augroup END
   " }}}
   " REMOVE TRAILING WHITESPACE && EMPTY LINES ON SAVE {{{
@@ -1184,7 +1101,10 @@ EOF
     let g:terminal_drawer_height   = 0.25
     let g:terminal_drawer_position = "botright"
 
-    let g:terminal_drawer = { 'win_id': v:null, 'buffer_id': v:null, 'terminal_job_id': v:null, 'state': 'closed' }
+    if !exists('g:terminal_drawer')
+      let g:terminal_drawer = { 'win_id': v:null, 'buffer_id': v:null, 'terminal_job_id': v:null, 'state': 'closed' }
+    endif
+
     function! ToggleTerminalDrawer() abort
       if win_gotoid(g:terminal_drawer.win_id)
         call CloseTerminalDrawer()
@@ -1211,7 +1131,6 @@ EOF
       endif
     endfunction
 
-
     function! OpenTerminalDrawer() abort
       if g:terminal_drawer.state == 'open'
         " Don't open terminal if already open
@@ -1228,9 +1147,10 @@ EOF
       endif
 
       exec 'resize' float2nr(&lines * g:terminal_drawer_height)
-      setlocal laststatus=0 noshowmode noruler
-      setlocal nobuflisted
       setlocal ft=terminal
+      setlocal laststatus=0 noshowmode noruler
+      setlocal nobuflisted modifiable
+
       echo ''
       startinsert!
       let g:terminal_drawer.win_id = win_getid()
@@ -1238,6 +1158,7 @@ EOF
       let g:terminal_drawer.state = 'open'
 
       tnoremap <buffer><Esc> <C-\><C-n>
+      nnoremap <buffer><cr> i
     endfunction
   " }}}
   " LAZYGIT {{{
@@ -1287,14 +1208,14 @@ EOF
   " }}}
   " INVERT && RESET BACKGROUND {{{
     function! InvertBackground()
+      hi ActiveWindow   guibg=#282C34
       hi InactiveWindow guibg=NONE
-      hi ActiveWindow   guibg=#2c323c
       set winhighlight=Normal:ActiveWindow,NormalNC:InactiveWindow
     endfunction
 
     function! ResetBackground()
       hi ActiveWindow   guibg=NONE
-      hi InactiveWindow guibg=#2c323c
+      hi InactiveWindow guibg=#282C34
       set winhighlight=Normal:ActiveWindow,NormalNC:InactiveWindow
     endfunction
   " }}}
@@ -1362,6 +1283,27 @@ EOF
     endfunction
   " }}}
 " }}}
+" Commands {{{
+  command! Format call FormatFile()
+
+  function! FormatFile() abort
+    call TrimEndLines()
+    call TrimWhitespace()
+    execute 'lua formatting()'
+  endfunction
+
+  " Opens decrypted rails credentials - uses https://gist.github.com/rf-/33fc88d3071f4254b80e
+  command! -nargs=0 -bang Ecredendtials call EcredentialsRails()
+
+  function! EcredentialsRails() abort
+    if g:terminal_drawer.terminal_job_id == v:null
+      echom "No Terminal Available"
+      return
+    endif
+
+    call jobsend(g:terminal_drawer.terminal_job_id, "rails credentials:edit\n")
+  endfunction
+" }}}
 " Key Mappings {{{
   let mapleader = "\\"
 
@@ -1369,11 +1311,15 @@ EOF
   nnoremap <leader>pu :PlugUpdate<cr>
   nnoremap <leader>h  :Helptags<cr>
   nnoremap <leader>bb obinding.pry<esc>:w<cr>^
+  nnoremap <leader>gx :GBranches<cr>
 
   " ERB Stuff
   inoremap <leader>5 <%  %><left><left><left>
   inoremap <leader>% <%=  %><left><left><left>
   inoremap <leader>e <% end %>
+
+  inoremap <silent><esc> <esc>:update<cr>:Format<cr>
+
 
   " Fast Find and Replace
   nnoremap R :%s/\<<C-r><C-w>\>//g<Left><Left><C-r><C-w>
@@ -1546,19 +1492,20 @@ EOF
   highlight slimId    gui=italic guifg=#82AAFF
   highlight slimAttr  gui=italic
 
+
   " Active and Inactive window bg color
   highlight ActiveWindow   guibg=NONE
-  highlight InactiveWindow guibg=#2c323c
+  highlight InactiveWindow guibg=#282C34
   set winhighlight=Normal:ActiveWindow,NormalNC:InactiveWindow
 
   " Set Transparent Background
   highlight Normal guibg=NONE
 
-  highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F
-  highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A
+  highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F blend=90
+  highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A blend=90
 
   highlight DiffAdd    guifg=#98c379 guibg=NONE gui=NONE
-  highlight DiffChange guifg=#fdde81 guibg=NONE gui=NONE
+  highlight DiffChange guifg=#569CD6 guibg=NONE gui=NONE
   highlight DiffDelete guifg=#e06c75 guibg=NONE gui=NONE
 
   " LSP Virtual Text
@@ -1578,26 +1525,34 @@ EOF
   highlight LspDiagnosticsSignWarning     guifg=#FFCB6B
 
   " BarBar
-  highlight BufferCurrent       guibg=#98c379 guifg=#2a323c
-  highlight BufferCurrentIcon   guibg=#98c379
-  highlight BufferCurrentIndex  guibg=#98c379
-  highlight BufferCurrentMod    guibg=#98c379 guifg=#a3212c
-  highlight BufferCurrentSign   guibg=#98c379 guifg=#2c323c
-  highlight BufferCurrentTarget guibg=#98c379 gui=BOLD
+  highlight BufferTabpageFill   guibg=#22252A guifg=#3E4551
 
-  highlight BufferVisible       guibg=#46554f guifg=#9a9c9e
-  highlight BufferVisibleIcon   guibg=#46554f
-  highlight BufferVisibleIndex  guibg=#46554f
-  highlight BufferVisibleMod    guibg=#46554f guifg=#a3212c gui=italic
-  highlight BufferVisibleSign   guibg=#46554f guifg=#2c323c
-  highlight BufferVisibleTarget guibg=#46554f gui=BOLD
+  highlight BufferCurrent       guibg=none guifg=#98c379 gui=bold
+  highlight BufferCurrentMod    guibg=none guifg=#E06C75 gui=bold
+  highlight BufferCurrentSign   guibg=none guifg=#82AAFF
+  highlight BufferCurrentTarget guibg=none gui=bold
+  highlight BufferCurrentIcon   guibg=none
+  highlight BufferCurrentIndex  guibg=none
 
-  highlight BufferInactive       guibg=#323944 guifg=#7a7c7e
-  highlight BufferInactiveIcon   guibg=#323944
-  highlight BufferInactiveIndex  guibg=#323944
-  highlight BufferInactiveMod    guibg=#323944 guifg=#E06C75
-  highlight BufferInactiveSign   guibg=#323944 guifg=#2c323c
-  highlight BufferInactiveTarget guibg=#323944
+  highlight BufferVisible       guibg=#282C34 guifg=#90AB7B
+  highlight BufferVisibleMod    guibg=#282C34 guifg=#E06C75
+  highlight BufferVisibleSign   guibg=#282C34 guifg=#23282C
+  highlight BufferVisibleTarget guibg=#282C34 gui=BOLD
+  highlight BufferVisibleIcon   guibg=#282C34
+  highlight BufferVisibleIndex  guibg=#282C34
 
-  " galaxyline
+  highlight BufferInactive       guibg=#22252A guifg=#7a7c7e gui=italic
+  highlight BufferInactiveIcon   guibg=#22252A
+  highlight BufferInactiveIndex  guibg=#22252A
+  highlight BufferInactiveMod    guibg=#22252A guifg=#E06C75 gui=italic
+  highlight BufferInactiveSign   guibg=#22252A guifg=#4a4c4e
+  highlight BufferInactiveTarget guibg=#22252A
+
+  " Code Biscuit
+  highlight BiscuitColor guifg=#858585
+" }}}
+" SETUP {{{
+  " Launch a terminal and close it when you open nvim
+  call OpenTerminalDrawer()
+  call CloseTerminalDrawer()
 " }}}
