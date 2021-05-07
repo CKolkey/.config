@@ -40,7 +40,6 @@ call plug#begin()
   Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
   Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
-  " Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
   Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
@@ -753,36 +752,36 @@ local on_attach = function(client)
     end
 end
 
-lspconfig.efm.setup {
-    on_attach = on_attach,
-    init_options = { documentFormatting = true },
-    settings = {
-      rootMarkers = {".git/"},
-      languages = {
-        javascript = {
-          lintCommand = "eslint_d -f unix --stdin --stdin-filename ${INPUT}",
-          lintIgnoreExitCode = true,
-          lintStdin = true,
-          lintFormats = {"%f:%l:%c: %m"}
-        },
-        eruby = {
-          lintCommand = "erb -x -T - | ruby -c",
-          lintStdin = true,
-          lintOffset = 1,
-          formatCommand = "htmlbeautifier"
-        },
-        ruby = {
-          lintCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion --stdin ${INPUT}",
-          lintIgnoreExitCode = true,
-          lintStdin = true,
-          lintFormats = {"%f:%l:%c: %m"},
-          formatCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion -A --stdin ${INPUT}",
-          formatIgnoreExitCode = true,
-          formatStdin = true
-        }
-      }
-    }
-}
+-- lspconfig.efm.setup {
+--     on_attach = on_attach,
+--     init_options = { documentFormatting = true },
+--     settings = {
+--       rootMarkers = {".git/"},
+--       languages = {
+--         javascript = {
+--           lintCommand = "eslint_d -f unix --stdin --stdin-filename ${INPUT}",
+--           lintIgnoreExitCode = true,
+--           lintStdin = true,
+--           lintFormats = {"%f:%l:%c: %m"}
+--         },
+--         eruby = {
+--           lintCommand = "erb -x -T - | ruby -c",
+--           lintStdin = true,
+--           lintOffset = 1,
+--           formatCommand = "htmlbeautifier"
+--         },
+--         ruby = {
+--           lintCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion --stdin ${INPUT}",
+--           lintIgnoreExitCode = true,
+--           lintStdin = true,
+--           lintFormats = {"%f:%l:%c: %m"},
+--           formatCommand = "rubocop-daemon-wrapper --format emacs --force-exclusion -A --stdin ${INPUT}",
+--           formatIgnoreExitCode = true,
+--           formatStdin = true
+--         }
+--       }
+--     }
+-- }
 
 lspconfig.solargraph.setup {
   on_attach = on_attach,
@@ -876,6 +875,21 @@ g.nvim_tree_bindings = {
     ["]c"]             = get_lua_cb("next_git_item")
 }
 EOF
+
+" highlight NvimTreeFileDirty guifg=#ff00ff
+" highlight NvimTreeFileDirty
+" highlight NvimTreeFileStaged
+" highlight NvimTreeFileMerge
+" highlight NvimTreeFileRenamed
+" highlight NvimTreeFileNew
+" highlight NvimTreeFileDeleted
+
+" highlight NvimTreeGitDirty
+" highlight NvimTreeGitStaged
+" highlight NvimTreeGitMerge
+" highlight NvimTreeGitRenamed
+" highlight NvimTreeGitNew
+" highlight NvimTreeGitDeleted
   " }}}
   " TURBUX (Test Runner) {{{
     let g:no_turbux_mappings = 1
@@ -1170,49 +1184,11 @@ EOF
       nnoremap <buffer><cr> i
     endfunction
   " }}}
-  " LAZYGIT {{{
-    function! ToggleLazyGit()
-      echo "Loaded Lazygit"
-      call ToggleTerm('lazygit')
-    endfunction
-
-    nnoremap <silent><leader>ll :call ToggleLazyGit()<cr>
-    tnoremap <silent><leader>ll <C-\><C-n>:call ToggleLazyGit()<CR>
-  " }}}
-  " CREATE FLOATING WINDOW {{{
-    function! CreateCenteredFloatingWindow()
-      let width  = float2nr(&columns * 0.9)
-      let height = float2nr(&lines * 0.8)
-      let top    = ((&lines - height) / 2) - 1
-      let left   = (&columns - width) / 2
-      let opts   = { 'relative': 'editor', 'row': top, 'col': left, 'width': width, 'height': height, 'style': 'minimal' }
-
-      call nvim_open_win(nvim_create_buf(v:false, v:true), v:true, opts)
-      call InvertBackground()
-      autocmd BufWipeout <buffer> call ResetBackground()
-    endfunction
-  " }}}
   " CHECK BACK SPACE {{{
     " Used for Autocompletion <TAB>
     function! s:check_back_space() abort
       let col = col('.') - 1
       return !col || getline('.')[col - 1]  =~ '\s'
-    endfunction
-  " }}}
-  " TOGGLE TERMINAL && ON TERMINAL EXIT {{{
-    function! ToggleTerm(cmd)
-      if empty(bufname(a:cmd))
-        call CreateCenteredFloatingWindow()
-        call termopen(a:cmd, { 'on_exit': function('OnTermExit') })
-      else
-        bwipeout!
-      endif
-    endfunction
-
-    function! OnTermExit(job_id, code, event) dict
-      if a:code == 0
-        bwipeout!
-      endif
     endfunction
   " }}}
   " INVERT && RESET BACKGROUND {{{
