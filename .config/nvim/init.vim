@@ -40,7 +40,7 @@ call plug#begin()
   Plug 'andymass/vim-matchup'                                   " Paren/def&end highlighting
   Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }     " Colorize HEX codes
   Plug 'chaoren/vim-wordmotion'                                 " Add more word objects, like camelCase
-  Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
+  " Plug 'machakann/vim-highlightedyank'                          " Highlight Yanked Text
   Plug 'christoomey/vim-tmux-navigator'                         " Navigate Vim Splits and Tmux Splits like they are the same thing
   Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
@@ -62,7 +62,6 @@ call plug#begin()
     Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
     Plug 'code-biscuits/nvim-biscuits'                          " Adds Closing biscuit
     Plug 'neovim/nvim-lspconfig'
-    " Plug 'yamatsum/nvim-cursorline'                             " Highlight the same word as under cursor
     Plug 'glepnir/indent-guides.nvim'                           " Indentation Guides
     Plug 'nvim-lua/plenary.nvim'                                " Utilities for LUA
     Plug 'lewis6991/gitsigns.nvim'                              " Gitgutter
@@ -72,8 +71,11 @@ call plug#begin()
     Plug 'romgrk/barbar.nvim'                                   " BufferLine
     Plug 'glepnir/galaxyline.nvim', {'branch': 'main'}          " StatusLine
     Plug 'nacro90/numb.nvim'                                    " Peek line when typing :{number}
-    Plug 'glepnir/lspsaga.nvim'                                 " Code Actions for LSP
     Plug 'stsewd/fzf-checkout.vim'                              " fzf + git checkout
+
+    " Not working yet, but looks cool
+    " Plug 'yamatsum/nvim-cursorline'                             " Highlight the same word as under cursor
+    " Plug 'simrat39/symbols-outline.nvim'
   endif
 call plug#end()
 " }}}
@@ -89,12 +91,12 @@ lua <<EOF
 require('nvim-biscuits').setup({
   default_config = {
     max_length = 80,
-    min_distance = 5,
-    prefix_string = " --"
+    min_distance = 10,
+    prefix_string = "# "
   },
   language_config = {
-    ruby = { prefix_string = " # " },
-    javascript = { prefix_string = " //" }
+    ruby = { prefix_string = "# " },
+    javascript = { prefix_string = "// " }
   }
 })
 EOF
@@ -550,11 +552,12 @@ EOF
 " }}}
   " INDENT GUIDES {{{
 lua <<EOF
-  require('indent_guides').setup({
-    exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf', 'terminal'};
-    even_colors = { fg = '#2E323A', bg = '#34383F' };
-    odd_colors  = { fg = '#34383F', bg = '#2E323A' };
-  })
+   require('indent_guides').setup({
+     exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf', 'terminal'};
+     indent_pretty_mode = true;
+     even_colors = { fg = '#2E323A', bg = '#34383F' };
+     odd_colors  = { fg = '#34383F', bg = '#2E323A' };
+   })
 EOF
   " }}}
   " ILLUMINATE {{{
@@ -671,8 +674,6 @@ require('vim.lsp.protocol').CompletionItemKind = {
     ' [typeParam]';   -- = 25;
 }
 
-require('lspsaga').init_lsp_saga()
-
 local map = function(mode, key, result, noremap)
     if noremap == nil then
         noremap = true
@@ -787,12 +788,12 @@ lspconfig.solargraph.setup {
   on_attach = on_attach,
   init_options = { documentFormatting = false },
   on_init = function(client)
-        client.config.flags = {}
-        if client.config.flags then
-          client.config.flags.allow_incremental_sync = true
-        end
+    client.config.flags = {}
+    if client.config.flags then
+      client.config.flags.allow_incremental_sync = true
     end
-  }
+  end
+}
 EOF
 
 sign define LspDiagnosticsSignError       text= numhl=LspDiagnosticsSignError
@@ -931,6 +932,7 @@ EOF
   set fillchars+=eob:\      " Don't show ~ off end of buffer
   set virtualedit=block     " allow cursor to move where there is no text in visual block mode
   set mouse=a               " Allow mouse to interact with vim
+  set autowriteall          " Autosave
 
   " Make Dirs {{{
     if !isdirectory($HOME . "/.cache/nvim/backup")
@@ -993,6 +995,7 @@ EOF
     autocmd!
     " We use a timer to allow endwise to finish it's thing before saving
     autocmd InsertLeave * nested call timer_start(100, { -> execute("silent! update") })
+    autocmd TextChanged,FocusLost,BufEnter * silent update
   augroup end
 " }}}
   " RELATIVE LINE NUMBERS IN NORMAL MODE, ABSOLUTE NUMBERS IN INSERT MODE {{{
@@ -1049,6 +1052,12 @@ EOF
       " autocmd BufWritePre * :call TrimWhitespace()
       " autocmd BufWritePre * :call TrimEndLines()
     " augroup END
+  " }}}
+  " HIGHLIGHT YANKED {{{
+    augroup highlight_yank
+      autocmd!
+      autocmd TextYankPost * silent! lua vim.highlight.on_yank {higroup="IncSearch", timeout=1000}
+    augroup END
   " }}}
 " }}}
 " Functions {{{
@@ -1501,8 +1510,8 @@ EOF
   " Set Transparent Background
   highlight Normal guibg=NONE
 
-  highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F blend=90
-  highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A blend=90
+  highlight IndentBlanklineEven guifg=#2E323A guibg=#34383F blend=90 gui=nocombine
+  highlight IndentBlanklineOdd  guifg=#34383F guibg=#2E323A blend=90 gui=nocombine
 
   highlight DiffAdd    guifg=#98c379 guibg=NONE gui=NONE
   highlight DiffChange guifg=#569CD6 guibg=NONE gui=NONE

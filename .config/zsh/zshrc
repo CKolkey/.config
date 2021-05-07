@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # User configuration
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -15,12 +22,23 @@ export KEYTIMEOUT=1
 export RPS1="%{$reset_color%}" # Must be before oh-my-zsh source
 
 # Oh My ZSH Stuff
+skip_global_compinit=1
+
+# Cache completion list for faster load times
+autoload -Uz compinit
+typeset -i updated_at=$(date +'%j' -r ~/.zcompdump 2>/dev/null || stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
+if [ $(date +'%j') != $updated_at ]; then
+  compinit
+else
+  compinit -C -i
+fi
+
 COMPLETION_WAITING_DOTS="true"
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 HIST_STAMPS="dd.mm.yyyy"
-ZSH_THEME="spaceship"
+# ZSH_THEME="spaceship"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(
-  vi-mode
   colored-man-pages
   postgres
   git
@@ -30,7 +48,7 @@ plugins=(
   history-substring-search
   zsh-autosuggestions
   zsh-syntax-highlighting
-  zsh-interactive-cd
+  # zsh-interactive-cd
   fzf-tab
 )
 
@@ -65,16 +83,6 @@ set show-all-if-ambiguous on
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
-# Cache completion list for faster load times
-autoload -Uz compinit
-typeset -i updated_at=$(date +'%j' -r ~/.zcompdump 2>/dev/null || stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)
-if [ $(date +'%j') != $updated_at ]; then
-  # compinit -i
-  compinit
-else
-  compinit -C -i
-fi
-
 # Use Homebrews SSL for ruby
 export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
 
@@ -97,3 +105,6 @@ export PATH="$HOME/.local/bin:$PATH"
 [ -z "$TMUX" ] && ( tmux attach -t default || tmux new -s default )
 # Close connection after TMUX terminates
 [ -z "$TMUX" ] && clear && exit
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
