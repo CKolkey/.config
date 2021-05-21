@@ -16,9 +16,6 @@
     let g:ruby_indent_block_style = 'do'
     let g:ruby_indent_hanging_elements = 1
   " }}}
-  " Slim {{{
-    " autocmd BufNewFile,BufRead *.slim setlocal filetype=slim
-  " }}}
 " }}}
 " Plugins {{{
 " Auto-Install vim-plug {{{
@@ -29,8 +26,15 @@
   endif
 " }}}
 call plug#begin()
-  Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
+  " Plug 'ryanoasis/vim-devicons'                                 " Nice icons for Files
   Plug 'joshdick/onedark.vim'                                   " Colorscheme
+
+  Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
+  Plug 'tpope/vim-rails'                                        " Rails Specific Commands
+  Plug 'tpope/vim-endwise'                                      " Place an 'end' in ruby blocks automatically
+  Plug 'tpope/vim-repeat'                                       " Improvements to . repeat
+  Plug 'tpope/vim-surround'                                     " Operations on parens, brackets, quotes
+  Plug 'tpope/vim-commentary'                                   " Comment-out lines
 
   Plug 'tommcdo/vim-lion'                                       " Align characters across lines
   Plug 'romainl/vim-cool'                                       " Clear Search Highlights automatically
@@ -44,49 +48,41 @@ call plug#begin()
   Plug 'ludovicchabant/vim-gutentags'                           " Manage CTags and GTags
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }           " File finder, text finder, buffer finder
   Plug 'junegunn/fzf.vim'
-  Plug 'soywod/himalaya', {'rtp': 'vim'}                        " Mail client integration
+  " Plug 'soywod/himalaya', {'rtp': 'vim'}                        " Mail client integration
 
   Plug 'sheerun/vim-polyglot'                                   " Load on Demand Language Packages
   Plug 'vim-ruby/vim-ruby'                                      " Use Ruby Package Specifically as it's more up-to-date than polyglot
   Plug 'slim-template/vim-slim'                                 " Use Slim Pagkage Specifically as it's more up to date
 
-  Plug 'tpope/vim-rails'                                        " Rails Specific Commands
-  Plug 'tpope/vim-endwise'                                      " Place an 'end' in ruby blocks automatically
-  Plug 'tpope/vim-repeat'                                       " Improvements to . repeat
-  Plug 'tpope/vim-sensible'                                     " Sensible Default Configs
-  Plug 'tpope/vim-surround'                                     " Operations on parens, brackts, quotes
-  Plug 'tpope/vim-commentary'                                   " Comment-out lines
-
   if has('nvim-0.5')
-    Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+    Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' } " Treesitter
+    Plug 'neovim/nvim-lspconfig'                                  " LSP
+
+    Plug 'kyazdani42/nvim-web-devicons'                         " Icons for BarBar
     Plug 'code-biscuits/nvim-biscuits'                          " Adds Closing biscuit
-    Plug 'neovim/nvim-lspconfig'
     Plug 'glepnir/indent-guides.nvim'                           " Indentation Guides
     Plug 'nvim-lua/plenary.nvim'                                " Utilities for LUA
     Plug 'lewis6991/gitsigns.nvim'                              " Gitgutter
     Plug 'hrsh7th/nvim-compe'                                   " Completion
-    Plug 'kyazdani42/nvim-web-devicons'                         " Icons for BarBar
     Plug 'kyazdani42/nvim-tree.lua'                             " File Browser
     Plug 'romgrk/barbar.nvim'                                   " BufferLine
-    Plug 'glepnir/galaxyline.nvim', {'branch': 'main'}          " StatusLine
     Plug 'nacro90/numb.nvim'                                    " Peek line when typing :{number}
     Plug 'stsewd/fzf-checkout.vim'                              " fzf + git checkout
+    Plug 'glepnir/galaxyline.nvim', {'branch': 'main'}          " StatusLine
 
     " Not working yet, but looks cool
-    " Plug 'yamatsum/nvim-cursorline'                             " Highlight the same word as under cursor
+    " Plug 'RRethy/vim-illuminate'                                " Highlight word under cursor, and matches
     " Plug 'simrat39/symbols-outline.nvim'
   endif
 call plug#end()
 " }}}
 " Plugin Settings & Mappings POST {{{
   " BARBAR {{{
-  let bufferline = get(g:, 'bufferline', {})
-  let bufferline.maximum_padding = 2
-  " let bufferline.icon_close_tab_modified = '!'
+    let bufferline = get(g:, 'bufferline', {})
+    let bufferline.maximum_padding = 2
   " }}}
   " CODE BISCUITS {{{
 lua <<EOF
-
 require('nvim-biscuits').setup({
   default_config = {
     max_length = 80,
@@ -103,9 +99,8 @@ EOF
 " CLEVER-F {{{
   let g:clever_f_smart_case        = 1
   let g:clever_f_fix_key_direction = 1
-  " let g:clever_f_mark_char_color   = ''
 
-  augroup clever-f-plugin-set-color
+  augroup cleverFPluginSetColor
     autocmd!
     autocmd Colorscheme * highlight default CleverFDefaultLabel ctermfg=NONE ctermbg=NONE cterm=bold guifg=#E06C75 guibg=NONE gui=bold
   augroup END
@@ -168,23 +163,10 @@ EOF
 "}}}
   " GALAXY LINE {{{
 lua <<EOF
-  local buffer_not_empty = function()
-    if vim.fn.empty(vim.fn.expand("%:t")) ~= 1 then
-      return true
-    end
-    return false
-  end
-
-  local buffer_empty = function()
-    if vim.fn.empty(vim.fn.expand("%:t")) ~= 1 then
-      return false
-    end
-    return true
-  end
-
   local gl = require('galaxyline')
   local condition = require('galaxyline.condition')
   local gls = gl.section
+
   gl.short_line_list = {'NvimTree', 'vista', 'dbui', 'packer', 'QF', "quickfix"}
   vim.api.nvim_command('hi GalaxyLineFillSection guibg=NONE')
 
@@ -244,35 +226,33 @@ lua <<EOF
   }
   -- }}}
   -- LEFT {{{
- gls.left[1] = {
-     Custom1 = {
-         provider = function()
-             vim.api.nvim_command('hi GalaxyCustom1 guibg=NONE guifg=' .. mode_color[vim.fn.mode()])
-             return " "
-         end,
-         highlight = {colors.red, colors.bg}
-     }
- }
+  gls.left[1] = {
+      Custom1 = {
+          provider = function()
+              vim.api.nvim_command('hi GalaxyCustom1 guibg=NONE guifg=' .. mode_color[vim.fn.mode()])
+              return " "
+          end,
+      }
+  }
 
   gls.left[2] = {
       ViMode = {
           provider = function()
-              -- auto change color according the vim mode
               vim.api.nvim_command('hi GalaxyViMode guifg=#0f0f0f guibg=' .. mode_color[vim.fn.mode()])
               return " " .. mode_label[vim.fn.mode()] .. " "
           end,
       }
   }
 
-  print(vim.fn.getbufvar(0, 'ts'))
-  vim.fn.getbufvar(0, 'ts')
+--  print(vim.fn.getbufvar(0, 'ts'))
+--  vim.fn.getbufvar(0, 'ts')
 
   gls.left[3] = {
       FilePresentIcon = {
           provider = function()
               return '   '
           end,
-          condition = buffer_not_empty,
+          condition = condition.buffer_not_empty,
           separator = ' ',
           separator_highlight = {'NONE', colors.bg},
           highlight = {colors.purple, colors.bg}
@@ -285,7 +265,7 @@ lua <<EOF
         provider = function()
           return vim.fn.expand("%")
         end,
-        condition = buffer_not_empty,
+        condition = condition.buffer_not_empty,
         separator = '',
         separator_highlight = {'NONE', colors.bg},
         highlight = {colors.grey, colors.bg},
@@ -348,93 +328,93 @@ lua <<EOF
         end,
      }
   }
- -- }}}
+  -- }}}
   -- RIGHT {{{
- gls.right[1] = {
-     Custom5 = {
-        provider = function()
-            vim.api.nvim_command('hi GalaxyCustom5 guibg=NONE guifg=' .. colors.bg )
-            return ""
-        end,
-     }
-  }
-  gls.right[2] = {DiagnosticError = {provider = 'DiagnosticError', icon = '  ', highlight = {colors.error_red, colors.bg} }}
-  gls.right[3] = {DiagnosticWarn  = {provider = 'DiagnosticWarn',  icon = '  ', highlight = {colors.yellow, colors.bg} }}
-  gls.right[4] = {DiagnosticHint  = {provider = 'DiagnosticHint',  icon = '  ', highlight = {colors.blue, colors.bg} }}
-  gls.right[5] = {DiagnosticInfo  = {provider = 'DiagnosticInfo',  icon = '  ', highlight = {colors.blue, colors.bg} }}
-
-  local connected_to_lsp = function()
-    local tbl = {['dashboard'] = true, [' '] = true}
-
-    if tbl[vim.bo.filetype] then
-      return false
-    end
-
-    if buffer_empty() then
-      return false
-    end
-
-    return true
-  end
-
-  gls.right[6] = {
-      ShowLspClientIcon = {
-          provider = function()
-              return ' '
-          end,
-          condition = connected_to_lsp,
-          separator = ' ',
-          separator_highlight = {'NONE', colors.bg},
-          highlight = {colors.green, colors.bg}
-      }
-  }
-
-  gls.right[7] = {
-      ShowLspClient = {
-          provider = 'GetLspClient',
-          condition = connected_to_lsp,
-          highlight = {colors.grey, colors.bg}
-      }
-  }
-
-  gls.right[8] = {
-      LineInfo = {
-          provider = 'LineColumn',
-          separator = '  ',
-          separator_highlight = {'NONE', colors.bg},
-          highlight = {colors.grey, colors.bg}
-      }
-  }
-
-  gls.right[9] = {
-    PerCent = {
-        provider = 'LinePercent',
-        separator = ' ',
-        separator_highlight = {'NONE', colors.bg},
-        highlight = {colors.grey, colors.bg}
-    }
-}
-
-  gls.right[10] = {
-      Space = {
-          provider = function()
-              return ' '
-          end,
-          separator = ' ',
-          separator_highlight = {'NONE', colors.bg},
-          highlight = {colors.orange, colors.bg}
-      }
-  }
-
- gls.right[11] = {
-     Custom2 = {
+  gls.right[1] = {
+      Custom5 = {
          provider = function()
-             vim.api.nvim_command('hi GalaxyCustom2 guibg=NONE guifg=' .. colors.bg )
-             return ""
+             vim.api.nvim_command('hi GalaxyCustom5 guibg=NONE guifg=' .. colors.bg )
+             return ""
          end,
-         highlight = {colors.red, colors.bg}
+      }
+   }
+   gls.right[2] = {DiagnosticError = {provider = 'DiagnosticError', icon = '  ', highlight = {colors.error_red, colors.bg} }}
+   gls.right[3] = {DiagnosticWarn  = {provider = 'DiagnosticWarn',  icon = '  ', highlight = {colors.yellow, colors.bg} }}
+   gls.right[4] = {DiagnosticHint  = {provider = 'DiagnosticHint',  icon = '  ', highlight = {colors.blue, colors.bg} }}
+   gls.right[5] = {DiagnosticInfo  = {provider = 'DiagnosticInfo',  icon = '  ', highlight = {colors.blue, colors.bg} }}
+
+   local connected_to_lsp = function()
+     local tbl = {['dashboard'] = true, [' '] = true}
+
+     if tbl[vim.bo.filetype] then
+       return false
+     end
+
+     if not condition.buffer_not_empty then
+       return false
+     end
+
+     return true
+   end
+
+   gls.right[6] = {
+       ShowLspClientIcon = {
+           provider = function()
+               return ' '
+           end,
+           condition = connected_to_lsp,
+           separator = ' ',
+           separator_highlight = {'NONE', colors.bg},
+           highlight = {colors.green, colors.bg}
+       }
+   }
+
+   gls.right[7] = {
+       ShowLspClient = {
+           provider = 'GetLspClient',
+           condition = connected_to_lsp,
+           highlight = {colors.grey, colors.bg}
+       }
+   }
+
+   gls.right[8] = {
+       LineInfo = {
+           provider = 'LineColumn',
+           separator = '  ',
+           separator_highlight = {'NONE', colors.bg},
+           highlight = {colors.grey, colors.bg}
+       }
+   }
+
+   gls.right[9] = {
+     PerCent = {
+         provider = 'LinePercent',
+         separator = ' ',
+         separator_highlight = {'NONE', colors.bg},
+         highlight = {colors.grey, colors.bg}
      }
  }
+
+   gls.right[10] = {
+       Space = {
+           provider = function()
+               return ' '
+           end,
+           separator = ' ',
+           separator_highlight = {'NONE', colors.bg},
+           highlight = {colors.orange, colors.bg}
+       }
+   }
+
+  gls.right[11] = {
+      Custom2 = {
+          provider = function()
+              vim.api.nvim_command('hi GalaxyCustom2 guibg=NONE guifg=' .. colors.bg )
+              return ""
+          end,
+          highlight = {colors.red, colors.bg}
+      }
+  }
   -- }}}
   -- SHORT LINE {{{
   gls.short_line_left[1] = {
@@ -461,22 +441,22 @@ lua <<EOF
       SFileName = {provider = 'SFileName', condition = condition.buffer_not_empty, highlight = {colors.grey, colors.bg}}
   }
 
-  gls.short_line_right[1] = {FileIcon = {provider = 'FileIcon', highlight = {colors.grey, colors.bg}, condition = buffer_not_empty }}
+  gls.short_line_right[1] = {FileIcon = {provider = 'FileIcon', highlight = {colors.grey, colors.bg}, condition = condition.buffer_not_empty }}
   -- }}}
 EOF
   " }}}
 " GITSIGNS {{{
 lua <<EOF
-require('gitsigns').setup {
-  signs = {
-    add          = {hl = 'DiffAdd'   , text = '▌', numhl='GitSignsAddNr'},
-    change       = {hl = 'DiffChange', text = '▌', numhl='GitSignsChangeNr'},
-    topdelete    = {hl = 'DiffDelete', text = '▔', numhl='GitSignsDeleteNr'},
-    delete       = {hl = 'DiffDelete', text = '▁', numhl='GitSignsDeleteNr'},
-    changedelete = {hl = 'DiffChange', text = '▁', numhl='GitSignsChangeNr'},
-  },
-  numhl = false,
-}
+-- require('gitsigns').setup {
+--   signs = {
+--     add          = {hl = 'DiffAdd'   , text = '▌', numhl='GitSignsAddNr'},
+--     change       = {hl = 'DiffChange', text = '▌', numhl='GitSignsChangeNr'},
+--     topdelete    = {hl = 'DiffDelete', text = '▔', numhl='GitSignsDeleteNr'},
+--     delete       = {hl = 'DiffDelete', text = '▁', numhl='GitSignsDeleteNr'},
+--     changedelete = {hl = 'DiffChange', text = '▁', numhl='GitSignsChangeNr'},
+--   },
+--   numhl = false,
+-- }
 EOF
 " }}}
 " GUTENTAGS {{{
@@ -551,22 +531,22 @@ EOF
 " }}}
   " INDENT GUIDES {{{
 lua <<EOF
-   require('indent_guides').setup({
-     exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf', 'terminal'};
-     indent_pretty_mode = true;
-     even_colors = { fg = '#2E323A', bg = '#34383F' };
-     odd_colors  = { fg = '#34383F', bg = '#2E323A' };
-   })
+require('indent_guides').setup({
+  exclude_filetypes = {'help','dashboard','dashpreview','NvimTree','vista','sagahover', 'defx', 'fzf', 'terminal'};
+  indent_pretty_mode = true;
+  even_colors = { fg = '#2E323A', bg = '#34383F' };
+  odd_colors  = { fg = '#34383F', bg = '#2E323A' };
+})
 EOF
   " }}}
   " ILLUMINATE {{{
-    " augroup illuminate_augroup
-    "   autocmd!
-    "   autocmd VimEnter * hi illuminatedCurWord gui=bold
-    "   autocmd VimEnter * hi illuminatedWord    gui=bold
-    " augroup END
+    augroup illuminate_augroup
+      autocmd!
+      autocmd VimEnter * hi illuminatedCurWord gui=bold
+      autocmd VimEnter * hi illuminatedWord    gui=bold
+    augroup END
 
-    " let g:Illuminate_ftblacklist = ['defx', 'NvimTree']
+    let g:Illuminate_ftblacklist = ['defx', 'NvimTree']
     " let g:Illuminate_delay = 5000
   " }}}
 " MATCHUP{{{
@@ -694,6 +674,7 @@ vim.lsp.handlers["textDocument/formatting"] = function(err, _, result, _, bufnr)
     if err ~= nil or result == nil then
         return
     end
+
     if not vim.api.nvim_buf_get_option(bufnr, "modified") then
         local view = vim.fn.winsaveview()
         vim.lsp.util.apply_text_edits(result, bufnr)
@@ -710,14 +691,9 @@ vim.cmd [[autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()]]
 
 local on_attach = function(client)
     -- Illuminate handles highlighting keywords
-    -- require 'illuminate'.on_attach(client)
+   -- require 'illuminate'.on_attach(client)
 
     if client.resolved_capabilities.document_formatting then
-      -- vim.cmd [[augroup Format]]
-      -- vim.cmd [[autocmd! * <buffer>]]
-      -- vim.cmd [[autocmd BufWritePost <buffer> lua formatting()]]
-      -- vim.cmd [[augroup END]]
-
       map("n", "<F8>", "<cmd>update<cr><cmd>lua formatting()<cr>")
     end
 
@@ -740,15 +716,7 @@ local on_attach = function(client)
     end
 
     if client.resolved_capabilities.rename then
-        -- map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>")
-        map("n", "<leader>rn", "<cmd>lua require('lspsaga.rename').rename()<CR>")
-    end
-
-    if client.resolved_capabilities.code_action then
-        vim.cmd [[augroup CodeAction]]
-        vim.cmd [[autocmd! * <buffer>]]
-        map("n", ",", "<cmd>Lspsaga code_action<CR>")
-        vim.cmd [[augroup END]]
+        map("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>")
     end
 end
 
@@ -804,8 +772,6 @@ sign define LspDiagnosticsSignHint        text= numhl=LspDiagnosticsSignHint
 lua <<EOF
 local g = vim.g
 
-g.nvim_tree_side = "left"
-g.nvim_tree_width = 30
 g.nvim_tree_ignore = {".git", "node_modules", ".cache"}
 g.nvim_tree_auto_open = 0
 g.nvim_tree_auto_close = 1
@@ -846,33 +812,31 @@ local get_lua_cb = function(cb_name)
 end
 
 -- Mappings for nvimtree
-vim.api.nvim_set_keymap("n", "-", ":NvimTreeToggle<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "-", ":NvimTreeToggle<CR>:vertical resize 50<cr>", { noremap = true, silent = true })
 g.nvim_tree_bindings = {
-    ["<CR>"]           = get_lua_cb("edit"),
-    ["l"]              = get_lua_cb("edit"),
-    ["v"]              = get_lua_cb("vsplit"),
-    ["s"]              = get_lua_cb("split"),
-    ["t"]              = get_lua_cb("tabnew"),
-    ["h"]              = get_lua_cb("close_node"),
-    ["<Tab>"]          = get_lua_cb("preview"),
-    ["n"]              = get_lua_cb("create"),
-    ["dd"]             = get_lua_cb("remove"),
-    ["r"]              = get_lua_cb("rename"),
-    ["x"]              = get_lua_cb("cut"),
-    ["yy"]             = get_lua_cb("copy"),
-    ["p"]              = get_lua_cb("paste"),
-    ["-"]              = get_lua_cb("close"),
-    ["q"]              = get_lua_cb("close"),
-
-    ["<2-LeftMouse>"]  = get_lua_cb("edit"),
-    ["<2-RightMouse>"] = get_lua_cb("cd"),
-    ["<C-]>"]          = get_lua_cb("cd"),
-    ["I"]              = get_lua_cb("toggle_ignored"),
-    ["H"]              = get_lua_cb("toggle_dotfiles"),
-    ["R"]              = get_lua_cb("refresh"),
-    ["<C-r>"]          = get_lua_cb("full_rename"),
-    ["[c"]             = get_lua_cb("prev_git_item"),
-    ["]c"]             = get_lua_cb("next_git_item")
+    ["<CR>"]  = get_lua_cb("edit"),
+    ["l"]     = get_lua_cb("edit"),
+    ["v"]     = get_lua_cb("vsplit"),
+    ["s"]     = get_lua_cb("split"),
+    ["t"]     = get_lua_cb("tabnew"),
+    ["h"]     = get_lua_cb("close_node"),
+    ["<Tab>"] = get_lua_cb("preview"),
+    ["n"]     = get_lua_cb("create"),
+    ["dd"]    = get_lua_cb("remove"),
+    ["r"]     = get_lua_cb("rename"),
+    ["x"]     = get_lua_cb("cut"),
+    ["yy"]    = get_lua_cb("copy"),
+    ["p"]     = get_lua_cb("paste"),
+    ["-"]     = get_lua_cb("close"),
+    ["<esc>"] = get_lua_cb("close"),
+    ["q"]     = get_lua_cb("close"),
+    ["<C-]>"] = get_lua_cb("cd"),
+    ["I"]     = get_lua_cb("toggle_ignored"),
+    ["H"]     = get_lua_cb("toggle_dotfiles"),
+    ["R"]     = get_lua_cb("refresh"),
+    ["<C-r>"] = get_lua_cb("full_rename"),
+    ["[c"]    = get_lua_cb("prev_git_item"),
+    ["]c"]    = get_lua_cb("next_git_item")
 }
 EOF
 
@@ -1007,8 +971,6 @@ EOF
 " AUTOSAVE CURRENT BUFFER {{{
   augroup autosavebuffer
     autocmd!
-    " We use a timer to allow endwise to finish it's thing before saving
-    autocmd InsertLeave * nested call timer_start(100, { -> execute("silent! update") })
     autocmd TextChanged,FocusLost,BufEnter * silent update
   augroup end
 " }}}
@@ -1059,13 +1021,6 @@ EOF
       autocmd BufWinEnter quickfix lua require("galaxyline").disable_galaxyline()
       autocmd BufWinEnter quickfix setl nobuflisted noshowmode noruler laststatus=0 noshowcmd
     augroup END
-  " }}}
-  " REMOVE TRAILING WHITESPACE && EMPTY LINES ON SAVE {{{
-    " augroup stripWhitespaceOnSave
-      " autocmd!
-      " autocmd BufWritePre * :call TrimWhitespace()
-      " autocmd BufWritePre * :call TrimEndLines()
-    " augroup END
   " }}}
   " HIGHLIGHT YANKED {{{
     augroup highlight_yank
@@ -1303,6 +1258,7 @@ EOF
   inoremap <leader>% <%=  %><left><left><left>
   inoremap <leader>e <% end %>
 
+  " Save, then format file, when leaving insert mode
   inoremap <silent><esc> <esc>:update<cr>:Format<cr>
 
 
@@ -1534,7 +1490,7 @@ EOF
   highlight BufferInactiveTarget guibg=#22252A
 
   " Code Biscuit
-  highlight BiscuitColor guifg=#858585
+  highlight BiscuitColor guifg=#5c6370
 " }}}
 " SETUP {{{
   " Launch a terminal and close it when you open nvim
